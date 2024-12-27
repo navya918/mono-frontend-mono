@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from "framer-motion"
 import {
   ChartBarIcon,
@@ -36,6 +36,30 @@ export default function EnhancedDashboard() {
 
 
 
+const [email, setEmail]=useState('')
+const [employeeId, setEmployeeId]=useState('');
+const[employeeName,setemployeeName]=useState('');
+const[initials,setInitials]=useState('');  // New state to store initials
+
+useEffect(()=>{
+  const storedEmail=localStorage.getItem('email');
+  const storedEmployeeID=localStorage.getItem('employeeId');
+  const firstName=localStorage.getItem('firstName');
+  const lastName=localStorage.getItem('lastName');
+  const fullName=firstName+" "+lastName;
+
+  if(storedEmail){
+    setEmail(storedEmail);
+    setEmployeeId(storedEmployeeID);
+    setemployeeName(fullName);
+    // Get the initials (first letter of firstName and lastName)
+    if(firstName && lastName) {
+      setInitials(firstName.charAt(0).toUpperCase() + lastName.charAt(0).toUpperCase());
+    }
+  }
+},[])
+
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -56,13 +80,13 @@ export default function EnhancedDashboard() {
 
 
             <div className="flex items-center space-x-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500 text-2xl font-bold text-white">AT
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-500 text-2xl font-bold text-white">{initials}
               </div>
               <div>
-                <p className="text-xl font-semibold text-gray-800 dark:text-white">Adarsh.M.Tarikeri</p>
+                <p className="text-xl font-semibold text-gray-800 dark:text-white">{employeeName||'employeeName not available'}</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Software Engineer</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Employee ID: MTL1012</p>
-                <p className="text-sm text-blue-600 dark:text-blue-400">adarsht@middlewaretalents</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Employee ID: {employeeId||'employee Id not available'}</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">{email || 'Email not available'}</p>
               </div>
             </div>
 

@@ -39,7 +39,7 @@ const Login = () => {
             // Log the entire response object
             console.log('Login response:', response);
 
-            const { message, role,token } = response.data;
+            const { message, role,token,firstName,lastName,employeeId } = response.data;
             const tokenData=token;
 
             // Log the extracted message and role

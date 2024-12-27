@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Loader from "./loader.js";
 import Calendar from "react-calendar";
 import Pagination from './Pagination';
+import { jsPDF } from "jspdf";
+import { MdOutlineFileDownload } from 'react-icons/md';
 import 'react-calendar/dist/Calendar.css';
 
 const ManagerTimesheets = () => {
@@ -17,13 +19,29 @@ const ManagerTimesheets = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  const managerId = "MTL1001";
+  const [startDate, setStartDate] = useState(""); 
+  const [endDate, setEndDate] = useState(""); 
+  const [isDownloadEnabled, setIsDownloadEnabled] = useState(false);
 
-  const fetchSubmissions = async () => {
+  // Fetch the managerId from localStorage
+  const managerId = "MTL1001";
+  const employeeId = localStorage.getItem('employeeId');
+
+  // Memoizing fetchSubmissions with useCallback to prevent unnecessary re-creations
+  const fetchSubmissions = useCallback(async () => {
+    if (!managerId) return; // Prevent API call if no managerId is found
+
     try {
-      const { data } = await axios.get(`https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${managerId}`);
+      let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${managerId}`;
+        
+      if (startDate && endDate) {
+        url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
+      }
+
+      const response = await axios.get(url);
+      const data = response.data.reverse();
       setSubmissions(data);
-      setFilteredSubmissions(data.reverse());
+      setFilteredSubmissions(data);
       setCounts({
         total: data.length,
         pending: data.filter((sub) => sub.status === "PENDING").length,
@@ -33,13 +51,15 @@ const ManagerTimesheets = () => {
     } catch (error) {
       console.log("Error:", error);
     }
-  };
+  }, [managerId, startDate, endDate, employeeId]);
 
   useEffect(() => {
-    fetchSubmissions();
-    const interval = setInterval(fetchSubmissions, 50000);
-    return () => clearInterval(interval);
-  }, []);
+    if (managerId) {
+      fetchSubmissions();
+      const interval = setInterval(fetchSubmissions, 50000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchSubmissions, managerId]); // Added fetchSubmissions to dependencies
 
   useEffect(() => {
     const updateItemsPerPage = () => {
@@ -97,6 +117,70 @@ const ManagerTimesheets = () => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
+  // Function to generate and download all filtered timesheets as a PDF
+  const downloadTimesheets = () => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+
+    const lineHeight = 10; // Set the distance between each line of text
+    let y = 20; // Initial y position
+
+    currentSubmissions.forEach((submission, index) => {
+      doc.text(`Timesheet for ${submission.clientName}`, 20, y);
+      y += lineHeight;
+
+      doc.text(`Project: ${submission.projectName}`, 20, y);
+      y += lineHeight;
+
+      doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
+      y += lineHeight;
+
+      doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
+      y += lineHeight;
+
+      doc.text(`Status: ${submission.status}`, 20, y);
+      y += lineHeight + 10; // Adding extra space after each submission
+    });
+
+    // Save the PDF with a generic name
+    doc.save(`Timesheets.pdf`);
+  };
+
+  // Function to generate and download an individual timesheet as a PDF
+  const downloadTimesheet = (submission) => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+
+    const lineHeight = 10; // Set the distance between each line of text
+    let y = 20; // Initial y position
+
+    // Add text to PDF with a dynamic y-coordinate to avoid overlap
+    doc.text(`Timesheet for ${submission.clientName}`, 20, y);
+    y += lineHeight; // Increment y for next line
+
+    doc.text(`Project: ${submission.projectName}`, 20, y);
+    y += lineHeight;
+    
+    doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
+    y += lineHeight;
+    
+    doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
+    y += lineHeight;
+    
+    doc.text(`Status: ${submission.status}`, 20, y);
+
+    // Save the PDF with a specific name based on client and project
+    doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+  };
+
+  // Set download button visibility when date range is applied
+  const handleApplyDateRange = () => {
+    setIsDownloadEnabled(true);
+    setCurrentPage(1); // Reset pagination when applying date range
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
       {loading && <Loader />}
@@ -132,7 +216,7 @@ const ManagerTimesheets = () => {
                 <div
                   key={status}
                   onClick={() => handleFilter(status === "TOTAL REQUESTS" ? "ALL" : status)}
-                  className={`p-4 rounded-lg text-xl shadow-md cursor-pointer transition duration-300 ease-in-out ${
+                  className={`p-4 rounded-lg text-xl text-center shadow-md cursor-pointer transition duration-300 ease-in-out ${
                     status === "TOTAL REQUESTS"
                       ? "bg-blue-100 hover:bg-blue-200"
                       : status === "APPROVED"
@@ -148,7 +232,31 @@ const ManagerTimesheets = () => {
                   </p>
                 </div>
               ))}
-            </div>
+              </div>
+
+              <div className="mb-10">
+                <label className="block text-lg font-medium text-gray-700">Filter by Date Range</label>
+                <div className="flex gap-4">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md"
+                  />
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md"
+                  />
+                  <button
+                    onClick={handleApplyDateRange}
+                    className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                  >
+                    Apply Date Range
+                  </button>
+                </div>
+              </div>
 
             {currentSubmissions.length ? (
               <div className="overflow-x-auto">
@@ -187,11 +295,11 @@ const ManagerTimesheets = () => {
                             {submission.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg font-medium">
+                        <td className="flex px-6 py-4 gap-4 whitespace-nowrap text-lg font-medium">
                           {submission.status !== "APPROVED" && submission.status !== "REJECTED" && (
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 gap-4">
                               <button
-                                className="text-blue-600 hover:text-blue-900"
+                                className=" text-blue-600  hover:text-blue-900 rounded-full"
                                 onClick={() => handleApprove(submission.id)}
                               >
                                 Accept
@@ -204,6 +312,12 @@ const ManagerTimesheets = () => {
                               </button>
                             </div>
                           )}
+                          <button
+                            className="text-grey text-xl hover:text-blue-900"
+                            onClick={() => downloadTimesheet(submission)} // Individual download
+                          >
+                          <MdOutlineFileDownload className="w-10 h-8"/>
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -211,10 +325,19 @@ const ManagerTimesheets = () => {
                 </table>
               </div>
             ) : (
-              <p className="text-center text-gray-500 mt-6">No submissions found.</p>
+              <p className="text-xl text-gray-500">No timesheets found for this filter.</p>
             )}
 
-            <div className="mt-6">
+            {isDownloadEnabled && (
+              <button
+                onClick={downloadTimesheets}
+                className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
+              >
+                Download All Timesheets
+              </button>
+            )}
+
+            <div className="mt-4">
               <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
             </div>
           </div>
@@ -225,11 +348,11 @@ const ManagerTimesheets = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Comments</h2>
-            <textarea 
-              className="w-full mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" 
-              rows={3} 
-              value={comments} 
-              onChange={(e) => setComments(e.target.value)} 
+            <textarea
+              className="w-full mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              rows={3}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
               placeholder="Write your comments here"
             />
             <div className="mt-4 flex justify-end space-x-2">
@@ -254,5 +377,5 @@ const ManagerTimesheets = () => {
   );
 };
 
-export default ManagerTimesheets;
 
+export default ManagerTimesheets;

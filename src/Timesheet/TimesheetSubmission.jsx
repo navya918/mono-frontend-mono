@@ -21,7 +21,7 @@ const TimesheetSubmission = ({ setSubmissions }) => {
 
       // Add the new submission to the list of submissions
       setSubmissions((prev) => [...prev, response.data]);
-      navigate('/EmployeeHomePage'); // Navigate to employee home page
+      navigate('/TimesheetManage'); // Navigate to employee home page
 
     } catch (error) {
       console.log("Error submitting timesheet:", error);
@@ -36,7 +36,7 @@ const TimesheetSubmission = ({ setSubmissions }) => {
   };
 
   // Destructure submissionData and prepare for rendering
-  const { emailId, totalNumberOfHours, comments, managerName, status, id, ...displayData } = formData;
+  const {totalNumberOfHours, comments, managerName, status, id, ...displayData } = formData;
 
   return (
     <div className="mx-auto py-4 px-6 text-black w-10/12">

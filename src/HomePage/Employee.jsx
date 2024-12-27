@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import {
@@ -111,7 +109,7 @@ export default function Employee() {
     const handleCloseModal = () => setIsModalOpen(false);
 
     const totalEmployees = employees.length;
-    const totalAdmins = employees.filter(emp => emp.role === 'Admin').length;
+    const totalAdmins = employees.filter(emp => emp.role === 'Admin'||'admin').length;
     const totalDepartments = [...new Set(employees.map(emp => emp.department))].length;
 
     // Pagination logic

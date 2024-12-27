@@ -44,11 +44,23 @@ const FormField = ({
   </div>
 );
 
+// const employeeNumber= localStorage.getItem('employeeId');
+const managerNumber= localStorage.getItem('reportingTo');
+const firstName=localStorage.getItem('firstName');
+const lastName=localStorage.getItem('lastName');
+const fullName= firstName+" "+lastName
+const email=localStorage.getItem("email")
+
+// console.log(employeeNumber);
+console.log(managerNumber);
+console.log(fullName);
+console.log(email);
+
 const TimesheetManagement = ({ setSubmissions }) => {
   const [formData, setFormData] = useState({
-    employeeId: "MTL1021",
+    employeeId:"",// employeeId: "MTL1021",
     managerId: "MTL1001",
-    employeeName: "Anitha",
+    employeeName:fullName,// employeeName: "Anitha",
     startDate: "",
     endDate: "",
     numberOfHours: "",
@@ -60,6 +72,7 @@ const TimesheetManagement = ({ setSubmissions }) => {
     reportingManager: "",
     onCallSupport: "",
     taskDescription: "",
+    emailId:email
   });
   const [errors, setErrors] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -69,12 +82,20 @@ const TimesheetManagement = ({ setSubmissions }) => {
   const location = useLocation();
 
   useEffect(() => {
+    const employeeId=localStorage.getItem('employeeId');
     if (location.state?.submission) {
       setFormData(location.state.submission);
       setIsEditing(true);
     } else if (location.state?.formData) {
       setFormData(location.state.formData);
     }
+    // }, [location.state]);
+
+    setFormData(prevData => ({
+      ...prevData,
+      employeeId,  
+    }));
+
   }, [location.state]);
 
   const handleChange = (e) => {

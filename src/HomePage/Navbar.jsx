@@ -26,6 +26,11 @@ export default function Navbar() {
         localStorage.removeItem('email');
         localStorage.removeItem('role');
         localStorage.removeItem('token');
+        localStorage.removeItem('firstName');
+        localStorage.removeItem('lastName');
+        localStorage.removeItem('employeeId');
+        localStorage.clear();
+
         navigate('/login');
         window.location.reload();
     };

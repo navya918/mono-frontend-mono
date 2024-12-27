@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { jsPDF } from "jspdf";
 import Pagination from "./Pagination";
+import { FaTrash, FaEdit } from "react-icons/fa";
+import { MdOutlineFileDownload } from "react-icons/md";
 
-const EmployeeHomePage = ({
-  submissions,
-  setSubmissions,
-  employeeId = "MTL1021",
-}) => {
+const EmployeeHomePage = ({ submissions, setSubmissions }) => {
   const navigate = useNavigate();
   const [filteredSubmissions, setFilteredSubmissions] = useState(submissions);
   const [counts, setCounts] = useState({
@@ -18,13 +17,24 @@ const EmployeeHomePage = ({
   });
   const [currentPage, setCurrentPage] = useState(1);
   const submissionsPerPage = 5;
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [isDownloadEnabled, setIsDownloadEnabled] = useState(false);
+  const [showModal, setShowModal] = useState(false); 
+  const [selectedSubmissionId, setSelectedSubmissionId] = useState(null); 
 
   useEffect(() => {
+    const employeeId = localStorage.getItem("employeeId");
+
     const fetchSubmissions = async () => {
       try {
-        const response = await axios.get(
-          `https://harhsa-backend.azurewebsites.net/api/timesheets/list/${employeeId}`
-        );
+        let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/${employeeId}`;
+
+        if (startDate && endDate) {
+          url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
+        }
+
+        const response = await axios.get(url);
         const data = response.data.reverse();
         setSubmissions(data);
         setFilteredSubmissions(data);
@@ -40,29 +50,27 @@ const EmployeeHomePage = ({
     };
 
     fetchSubmissions();
-  }, [employeeId, setSubmissions]);
+  }, [setSubmissions, startDate, endDate]);
 
   const handleCreateTimesheet = () => navigate("/timesheet-management");
   const handleEditTimesheet = (submission) =>
     navigate("/timesheet-management", { state: { submission } });
 
-  const handleDeleteTimesheet = async (id) => {
+  const handleDeleteTimesheet = async () => {
     try {
-      await axios.delete(`https://harhsa-backend.azurewebsites.net/api/timesheets/delete/${id}`);
+      await axios.delete(`https://harhsa-backend.azurewebsites.net/api/timesheets/delete/${selectedSubmissionId}`);
       const updatedSubmissions = filteredSubmissions.filter(
-        (sub) => sub.id !== id
+        (sub) => sub.id !== selectedSubmissionId
       );
       setFilteredSubmissions(updatedSubmissions);
       setSubmissions(updatedSubmissions);
       setCounts({
         total: updatedSubmissions.length,
-        pending: updatedSubmissions.filter((sub) => sub.status === "PENDING")
-          .length,
-        approved: updatedSubmissions.filter((sub) => sub.status === "APPROVED")
-          .length,
-        rejected: updatedSubmissions.filter((sub) => sub.status === "REJECTED")
-          .length,
+        pending: updatedSubmissions.filter((sub) => sub.status === "PENDING").length,
+        approved: updatedSubmissions.filter((sub) => sub.status === "APPROVED").length,
+        rejected: updatedSubmissions.filter((sub) => sub.status === "REJECTED").length,
       });
+      setShowModal(false); // Close the modal after deletion
     } catch (error) {
       console.error("Error deleting timesheet:", error);
     }
@@ -82,12 +90,64 @@ const EmployeeHomePage = ({
     currentPage * submissionsPerPage
   );
 
+  const downloadTimesheet = (submission) => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+
+    const lineHeight = 10; 
+    let y = 20; 
+
+    doc.text(`Timesheet for ${submission.clientName}`, 20, y);
+    y += lineHeight;
+    doc.text(`Project: ${submission.projectName}`, 20, y);
+    y += lineHeight;
+    doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
+    y += lineHeight;
+    doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
+    y += lineHeight;
+    doc.text(`Status: ${submission.status}`, 20, y);
+
+    doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+  };
+
+  const handleApplyDateRange = () => {
+    setIsDownloadEnabled(true);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
       <div className="max-w-full mx-auto">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">Employee Dashboard</h1>
+            <div className="flex justify-between mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Employee Dashboard</h1>
+            </div>
+
+            {/* Modal for Delete Confirmation */}
+            {showModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                  <h2 className="text-xl font-bold mb-4 text-gray-900">Confirm Deletion</h2>
+                  <div className="mt-4 flex justify-end space-x-2">
+                    <button
+                      onClick={() => setShowModal(false)} 
+                      className="bg-gray-200 text-lg text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-300 ease-in-out"
+                    >
+                      Close
+                    </button>
+                    <button
+                      onClick={handleDeleteTimesheet} 
+                      className="bg-blue-600 text-lg text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+                    >
+                      Confirm Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
               <button
                 onClick={handleCreateTimesheet}
@@ -120,7 +180,31 @@ const EmployeeHomePage = ({
                 Rejected: {counts.rejected}
               </button>
             </div>
-            
+
+            <div className="mb-10">
+              <label className="block text-lg font-medium text-gray-700">Filter by Date Range</label>
+              <div className="flex gap-4">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+                <button
+                  onClick={handleApplyDateRange}
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                >
+                  Apply Date Range
+                </button>
+              </div>
+            </div>
+
             {currentSubmissions.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -156,23 +240,32 @@ const EmployeeHomePage = ({
                             {submission.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg font-medium">
+                        <td className="flex px-6 py-6 gap-4 whitespace-nowrap text-lg font-medium">
                           {submission.status !== "APPROVED" && submission.status !== "REJECTED" && (
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-2 gap-4">
                               <button
                                 className="text-blue-600 text-xl hover:text-blue-900"
                                 onClick={() => handleEditTimesheet(submission)}
                               >
-                                Edit
+                                <FaEdit />
                               </button>
                               <button
                                 className="text-blue-600 text-xl hover:text-blue-900"
-                                onClick={() => handleDeleteTimesheet(submission.id)}
+                                onClick={() => {
+                                  setSelectedSubmissionId(submission.id);
+                                  setShowModal(true); // Show modal when delete is clicked
+                                }}
                               >
-                                Delete
+                                <FaTrash />
                               </button>
                             </div>
                           )}
+                          <button
+                            className="text-grey text-xl hover:text-blue-900"
+                            onClick={() => downloadTimesheet(submission)}
+                          >
+                            <MdOutlineFileDownload className="w-10 h-8" />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -180,10 +273,18 @@ const EmployeeHomePage = ({
                 </table>
               </div>
             ) : (
-              <p className="text-center text-gray-500 mt-6">
-                No timesheets submitted yet.
-              </p>
+              <p className="text-center text-gray-500 mt-6">No timesheets submitted yet.</p>
             )}
+
+            {isDownloadEnabled && (
+              <button
+                onClick={downloadTimesheet}
+                className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
+              >
+                Download All Timesheets
+              </button>
+            )}
+
             <div className="mt-6">
               <Pagination
                 currentPage={currentPage}
@@ -199,4 +300,3 @@ const EmployeeHomePage = ({
 };
 
 export default EmployeeHomePage;
-
