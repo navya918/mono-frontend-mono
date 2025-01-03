@@ -3,17 +3,18 @@ import axios from "axios";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import ChartNode from "./ChartNode";
 import ProfileCard from "./ProfileCard";
+import SearchError from "../Assets/searcherror.png"
 
 export default function Chart() {
   const [originData, setOriginData] = useState([]);
   const [reportingEmployees, setReportingEmployees] = useState([]);
-  const [employeeId, setEmployeeId] = useState("MTL1001"); // Initial employee ID
+  const [employeeId, setEmployeeId] = useState(localStorage.getItem('employeeId')); // Initial employee ID
   const [allEmployees, setAllEmployees] = useState([]);
   const [highlightedId, setHighlightedId] = useState(null);
   const [search, setSearch] = useState("");
   const [searchData, setSearchData] = useState([]);
   const [errorMessage, setErrorMessage] = useState(""); // For displaying errors
-
+  const [searchError, setSearchError] = useState(false); // For tracking if search has no results
   const suggestionsRef = useRef(null);
 
   // Fetch data based on the employeeId
@@ -28,7 +29,6 @@ export default function Chart() {
             headers : {
               'Authorization' : `Bearer ${token}`,
               'Content-Type': "application/json"
-              
             }
           })
         ]);
@@ -55,15 +55,13 @@ export default function Chart() {
             headers : {
               'Authorization' : `Bearer ${token}`,
               'Content-Type': "application/json"
-              
             }
           })
         ]);
 
         // Setting the fetched data
-      
         setAllEmployees(employeesResponse.data); // Save all employees for search functionality
-        
+        setSearchError(false); // Reset search error
         // Clear any previous error messages on successful data fetch
         setErrorMessage(""); 
 
@@ -78,23 +76,18 @@ export default function Chart() {
         const token = localStorage.getItem('token')
         console.log(token)
         const [ reportingResponse] = await Promise.all([
-          
           axios.get(`https://talents-backend.azurewebsites.net/api/v1/employeeManager/reporting-to/${employeeId}`,{
             method:'GET',
             headers : {
               'Authorization' : `Bearer ${token}`,
               'Content-Type': "application/json"
-              
             }
           }),
-         
         ]);
 
         // Setting the fetched data
-       
         setReportingEmployees(reportingResponse.data);
-        
-        
+
         // Clear any previous error messages on successful data fetch
         setErrorMessage(""); 
 
@@ -124,6 +117,7 @@ export default function Chart() {
     // If search input is empty, clear suggestions
     if (inputValue === "") {
       setSearchData([]);
+      setSearchError(false); // Reset search error on empty input
       return;
     }
 
@@ -134,6 +128,13 @@ export default function Chart() {
     });
 
     setSearchData(filteredData);
+
+    // Set search error if no employees found
+    if (filteredData.length === 0) {
+      setSearchError(true);
+    } else {
+      setSearchError(false);
+    }
   };
 
   // Handle suggestion click (update employeeId)
@@ -173,7 +174,13 @@ export default function Chart() {
             className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        {searchData.length > 0 && search !== "" && (
+        {searchData.length === 0 && searchError && (
+          <div className=" absolute z-10 w-full bg-white border border-gray-300 mt-20 rounded-md max-h-60  shadow-lg text-center">
+            <img src={SearchError} alt="No results found" className="w-1/2 mx-auto my-4" />
+            <p className="text-gray-600">No results found</p>
+          </div>
+        )}
+        {searchData.length > 0 && search !== "" && !searchError && (
           <ul ref={suggestionsRef} className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md max-h-60 overflow-y-auto shadow-lg">
             {searchData.map((each) => (
               <li
@@ -188,51 +195,53 @@ export default function Chart() {
         )}
       </div>
 
-      <div className="flex flex-col text-center items-center space-y-8">
-        <div className="w-full max-w-4xl overflow-x-auto">
-          <div className="inline-flex flex-col items-center space-y-4 p-4">
-            {originData.map((each, index) => (
-              <div key={each.employeeId} className="flex flex-col items-center">
-                <ChartNode
-                  employee={each}
-                  changeEmployee={changeEmployee}
-                  isHighlighted={highlightedId === each.employeeId} // Highlight the selected employee
-                />
-                {index < originData.length - 1 && (
-                  <div className="w-px h-8 bg-blue-400"></div> // Vertical line between nodes
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row w-full max-w-6xl space-y-8 md:space-y-0 md:space-x-8">
-          <div className="flex-1">
-            <ProfileCard employeeId={employeeId} /> {/* Pass the employeeId to display profile */}
-          </div>
-          
-          {reportingEmployees.length > 0 ? (
-            <div className="flex-1 bg-white rounded-lg shadow-lg p-6 ">
-              <h2 className="text-2xl font-semibold text-blue-800 mb-4">Reporting Employees</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {reportingEmployees.map((each) => (
+      {!searchError && (
+        <div className="flex flex-col text-center items-center space-y-8">
+          <div className="w-full max-w-4xl overflow-x-auto">
+            <div className="inline-flex flex-col items-center space-y-4 p-4">
+              {originData.map((each, index) => (
+                <div key={each.employeeId} className="flex flex-col items-center">
                   <ChartNode
-                    key={each.employeeId} // Ensure the key is unique for reporting employees
                     employee={each}
                     changeEmployee={changeEmployee}
-                    isHighlighted={highlightedId === each.employeeId} // Highlight reporting employees
+                    isHighlighted={highlightedId === each.employeeId} // Highlight the selected employee
                   />
-                ))}
+                  {index < originData.length - 1 && (
+                    <div className="w-px h-8 bg-blue-400"></div> // Vertical line between nodes
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row w-full max-w-6xl space-y-8 md:space-y-0 md:space-x-8">
+            <div className="flex-1">
+              <ProfileCard employeeId={employeeId} /> {/* Pass the employeeId to display profile */}
+            </div>
+
+            {reportingEmployees.length > 0 ? (
+              <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-blue-800 mb-4">Reporting Employees</h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                  {reportingEmployees.map((each) => (
+                    <ChartNode
+                      key={each.employeeId} // Ensure the key is unique for reporting employees
+                      employee={each}
+                      changeEmployee={changeEmployee}
+                      isHighlighted={highlightedId === each.employeeId} // Highlight reporting employees
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold text-blue-800 mb-4">Reporting Employees</h2>
-              <p className="text-gray-600">{errorMessage || "This employee has no direct reports."}</p>
-            </div>
-          )}
+            ) : (
+              <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-2xl font-semibold text-blue-800 mb-4">Reporting Employees</h2>
+                <p className="text-gray-600">{errorMessage || "This employee has no direct reports."}</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
