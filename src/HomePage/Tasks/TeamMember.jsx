@@ -4,28 +4,27 @@ import { PlusIcon } from "@heroicons/react/16/solid"; // Importing PlusIcon from
 const TeamMember = (props) => {
   // Destructure props to extract member data and taskCreate function
   const { member, taskCreate } = props;
-  const { email, imageUrl, name, role } = member; // Destructure member properties
+  const { corporateEmail, firstName, lastName, jobRole } = member; // Destructure member properties
 
   // Function to handle adding a task for the member
   const addTask = () => {
-    taskCreate(email); // Call taskCreate with the member's email
+    taskCreate(corporateEmail); // Call taskCreate with the member's email
   };
 
   return (
-    <li key={email} className="flex justify-between gap-x-6 py-5">
+    <li key={corporateEmail} className="flex justify-between gap-x-6 py-5">
       <div className="flex min-w-0 gap-x-4 ml-5">
         {/* Display member's image */}
-        <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={imageUrl} alt="" />
         <div className="min-w-0 flex-auto">
           {/* Member's name */}
-          <p className="text-xl font-semibold leading-6 text-gray-900">{name}</p>
+          <p className="text-xl font-semibold leading-6 text-gray-900">{firstName} {lastName}</p>
           {/* Member's email */}
-          <p className="mt-1 truncate text-xl leading-5 text-gray-500">{email}</p>
+          <p className="mt-1 truncate text-xl leading-5 text-gray-500">{corporateEmail}</p>
         </div>
       </div>
       <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
         {/* Member's role */}
-        <p className="text-xl leading-6 text-gray-900">{role}</p>
+        <p className="text-xl leading-6 text-gray-900">{jobRole}</p>
       </div>
       <div>
         {/* Button to add a task */}
