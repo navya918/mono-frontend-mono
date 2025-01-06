@@ -4,8 +4,8 @@ import Loader from '../../Assets/Loader';
 
 export default function AddTask(props) {
   const { taskCreate, personToAddTask } = props;
-  const [personName, setName] = useState(personToAddTask[0]?.name || "");
-  const [email, setEmail] = useState(personToAddTask[0]?.email || "");
+  const [personName, setName] = useState(personToAddTask[0]?.firstName || "");
+  const [email, setEmail] = useState(personToAddTask[0]?.corporateEmail || "");
   const [taskName, setTaskName] = useState("");
   const [taskDetails, setTaskDetails] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
@@ -29,6 +29,7 @@ export default function AddTask(props) {
       setIsLoading(true);
       try {
         await axios.post("https://talents-backebd3.azurewebsites.net/apis/employees/tasks", {
+          taskAssignedPersonName:localStorage.getItem('firstName')+" "+localStorage.getItem('lastName'),
           taskAssignedFrom: localStorage.getItem('email'),
           personName,
           personEmail: email,

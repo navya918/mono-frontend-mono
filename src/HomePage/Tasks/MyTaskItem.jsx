@@ -1,6 +1,6 @@
 const MyTaskItem=(props)=>{
     const {each,}=props
-    const {taskId, taskName, taskDetails, taskAssignedFrom, effectiveDate, dueDate, taskStatus}=each
+    const {taskId, taskName, taskDetails, taskAssignedPersonName, taskAssignedFrom, effectiveDate, dueDate, taskStatus}=each
 
     var today = new Date(); // This gets today's date
 
@@ -44,7 +44,7 @@ return (
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="ml-4">
-
+                                                <div className="text-xl font-medium text-gray-900">{taskAssignedPersonName}</div>
                                                     <div className="text-xl text-gray-500">{taskAssignedFrom}</div>
                                                 </div>
                                             </div>
