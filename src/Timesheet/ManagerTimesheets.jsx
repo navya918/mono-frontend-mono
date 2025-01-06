@@ -19,8 +19,8 @@ const ManagerTimesheets = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  const [startDate, setStartDate] = useState(""); 
-  const [endDate, setEndDate] = useState(""); 
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isDownloadEnabled, setIsDownloadEnabled] = useState(false);
 
   // Fetch the managerId from localStorage
@@ -33,7 +33,7 @@ const ManagerTimesheets = () => {
 
     try {
       let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${managerId}`;
-        
+
       if (startDate && endDate) {
         url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
       }
@@ -117,64 +117,88 @@ const ManagerTimesheets = () => {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
-  // Function to generate and download all filtered timesheets as a PDF
   const downloadTimesheets = () => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
 
-    const lineHeight = 10; // Set the distance between each line of text
-    let y = 20; // Initial y position
+    // Set the title for the document
+    doc.text("Timesheets", 20, 20);
 
-    currentSubmissions.forEach((submission, index) => {
-      doc.text(`Timesheet for ${submission.clientName}`, 20, y);
-      y += lineHeight;
+    // Define the table columns and headers
+    const columns = [
+      { title: "Client", dataKey: "clientName" },
+      { title: "Project", dataKey: "projectName" },
+      { title: "Date Range", dataKey: "dateRange" },
+      { title: "Total Hours", dataKey: "totalNumberOfHours" },
+      { title: "Status", dataKey: "status" },
+    ];
 
-      doc.text(`Project: ${submission.projectName}`, 20, y);
-      y += lineHeight;
+    // Map the filtered submissions into rows for the table
+    const rows = currentSubmissions.map(submission => ({
+      clientName: submission.clientName,
+      projectName: submission.projectName,
+      dateRange: `${submission.startDate} - ${submission.endDate}`,
+      totalNumberOfHours: submission.totalNumberOfHours,
+      status: submission.status,
+    }));
 
-      doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
-      y += lineHeight;
-
-      doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
-      y += lineHeight;
-
-      doc.text(`Status: ${submission.status}`, 20, y);
-      y += lineHeight + 10; // Adding extra space after each submission
+    // Add the table to the PDF
+    doc.autoTable({
+      head: [columns.map(col => col.title)], // Table headers
+      body: rows.map(row => [
+        row.clientName,
+        row.projectName,
+        row.dateRange,
+        row.totalNumberOfHours,
+        row.status,
+      ]), // Table data
+      startY: 30, // Position where the table will start
+      theme: "grid", // Optional: Adds alternating row colors for readability
+      margin: { top: 10, left: 20, right: 20 }, // Table margin
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+        1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+      },
     });
 
-    // Save the PDF with a generic name
-    doc.save(`Timesheets.pdf`);
+    // Save the generated PDF
+    doc.save("Timesheets.pdf");
   };
 
-  // Function to generate and download an individual timesheet as a PDF
+
   const downloadTimesheet = (submission) => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
 
-    const lineHeight = 10; // Set the distance between each line of text
-    let y = 20; // Initial y position
+    // Title
+    doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
 
-    // Add text to PDF with a dynamic y-coordinate to avoid overlap
-    doc.text(`Timesheet for ${submission.clientName}`, 20, y);
-    y += lineHeight; // Increment y for next line
+    // Table data
+    const tableData = [
+      ["Project", submission.projectName],
+      ["Date Range", `${submission.startDate} - ${submission.endDate}`],
+      ["Total Hours", submission.totalNumberOfHours],
+      ["Status", submission.status],
+    ];
 
-    doc.text(`Project: ${submission.projectName}`, 20, y);
-    y += lineHeight;
-    
-    doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
-    y += lineHeight;
-    
-    doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
-    y += lineHeight;
-    
-    doc.text(`Status: ${submission.status}`, 20, y);
+    // Define table options and render
+    doc.autoTable({
+      startY: 30, // Position of the table
+      head: [["Field", "Value"]], // Table header
+      body: tableData, // Table body
+      theme: "grid", // Grid style for table
+      margin: { top: 10, left: 20, right: 20 }, // Table margin
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+        1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+      },
+    });
 
-    // Save the PDF with a specific name based on client and project
+    // Save the document as a PDF with a dynamic file name
     doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
   };
-
   // Set download button visibility when date range is applied
   const handleApplyDateRange = () => {
     setIsDownloadEnabled(true);
@@ -182,198 +206,198 @@ const ManagerTimesheets = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
-      {loading && <Loader />}
-      <div className="max-w-full mx-auto">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          <div className="p-6 sm:p-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-4xl font-bold text-gray-900">Submitted Timesheets</h2>
-              <button
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out"
-              >
-                {showCalendar ? "Hide Calendar" : "Show Calendar"}
-              </button>
-            </div>
-
-            {showCalendar && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg shadow-lg p-4 text-center">
-                  <Calendar onChange={setDate} value={date} className="rounded-lg shadow-md" />
-                  <button
-                    onClick={() => setShowCalendar(false)}
-                    className="mt-4 w-40 bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-xl">
-              {["TOTAL REQUESTS", "APPROVED", "PENDING", "REJECTED"].map((status) => (
-                <div
-                  key={status}
-                  onClick={() => handleFilter(status === "TOTAL REQUESTS" ? "ALL" : status)}
-                  className={`p-4 rounded-lg text-xl text-center shadow-md cursor-pointer transition duration-300 ease-in-out ${
-                    status === "TOTAL REQUESTS"
-                      ? "bg-blue-100 hover:bg-blue-200"
-                      : status === "APPROVED"
-                      ? "bg-gray-100 hover:bg-gray-200"
-                      : status === "PENDING"
-                      ? "bg-gray-200 hover:bg-gray-300"
-                      : "bg-gray-300 hover:bg-gray-400"
-                  }`}
+      <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-8">
+        {loading && <Loader />}
+        <div className="max-w-full mx-auto">
+          <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+            <div className="p-6 sm:p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-4xl font-bold text-gray-900">Submitted Timesheets</h2>
+                <button
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out"
                 >
-                  <h3 className="font-semibold text-gray-800">{capitalizeFirstLetter(status)}</h3>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {status === "TOTAL REQUESTS" ? counts.total : counts[status.toLowerCase()]}
-                  </p>
-                </div>
-              ))}
+                  {showCalendar ? "Hide Calendar" : "Show Calendar"}
+                </button>
+              </div>
+
+              {showCalendar && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-4 text-center">
+                      <Calendar onChange={setDate} value={date} className="rounded-lg shadow-md" />
+                      <button
+                          onClick={() => setShowCalendar(false)}
+                          className="mt-4 w-40 bg-blue-600 text-white py-2 rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-xl">
+                {["TOTAL REQUESTS", "APPROVED", "PENDING", "REJECTED"].map((status) => (
+                    <div
+                        key={status}
+                        onClick={() => handleFilter(status === "TOTAL REQUESTS" ? "ALL" : status)}
+                        className={`p-4 rounded-lg text-xl text-center shadow-md cursor-pointer transition duration-300 ease-in-out ${
+                            status === "TOTAL REQUESTS"
+                                ? "bg-blue-100 hover:bg-blue-200"
+                                : status === "APPROVED"
+                                    ? "bg-gray-100 hover:bg-gray-200"
+                                    : status === "PENDING"
+                                        ? "bg-gray-200 hover:bg-gray-300"
+                                        : "bg-gray-300 hover:bg-gray-400"
+                        }`}
+                    >
+                      <h3 className="font-semibold text-gray-800">{capitalizeFirstLetter(status)}</h3>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {status === "TOTAL REQUESTS" ? counts.total : counts[status.toLowerCase()]}
+                      </p>
+                    </div>
+                ))}
               </div>
 
               <div className="mb-10">
                 <label className="block text-lg font-medium text-gray-700">Filter by Date Range</label>
                 <div className="flex gap-4">
                   <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="p-2 border border-gray-300 rounded-md"
                   />
                   <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="p-2 border border-gray-300 rounded-md"
                   />
                   <button
-                    onClick={handleApplyDateRange}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                      onClick={handleApplyDateRange}
+                      className="bg-blue-500 text-white py-2 px-4 rounded-md"
                   >
                     Apply Date Range
                   </button>
                 </div>
               </div>
 
-            {currentSubmissions.length ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {["Start Date", "End Date", "Employee Name", "Client Name", "Project Name", "Total Hours", "Status", "Actions"].map((col) => (
-                        <th
-                          key={col}
-                          className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentSubmissions.map((submission) => (
-                      <tr key={submission.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.startDate}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.endDate}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.employeeName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.clientName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.projectName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.totalNumberOfHours}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+              {currentSubmissions.length ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                      <tr>
+                        {["Start Date", "End Date", "Employee Name", "Client Name", "Project Name", "Total Hours", "Status", "Actions"].map((col) => (
+                            <th
+                                key={col}
+                                className="px-6 py-3 text-left text-lg font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              {col}
+                            </th>
+                        ))}
+                      </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                      {currentSubmissions.map((submission) => (
+                          <tr key={submission.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.startDate}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.endDate}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.employeeName}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.clientName}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.projectName}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.totalNumberOfHours}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
                           <span
-                            className={`px-2 inline-flex text-lg leading-5 font-semibold rounded-full ${
-                              submission.status === "APPROVED"
-                                ? "bg-blue-100 text-blue-800"
-                                : submission.status === "REJECTED"
-                                ? "bg-gray-100 text-gray-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
+                              className={`px-2 inline-flex text-lg leading-5 font-semibold rounded-full ${
+                                  submission.status === "APPROVED"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : submission.status === "REJECTED"
+                                          ? "bg-gray-100 text-gray-800"
+                                          : "bg-yellow-100 text-yellow-800"
+                              }`}
                           >
                             {submission.status}
                           </span>
-                        </td>
-                        <td className="flex px-6 py-4 gap-4 whitespace-nowrap text-lg font-medium">
-                          {submission.status !== "APPROVED" && submission.status !== "REJECTED" && (
-                            <div className="flex space-x-2 gap-4">
+                            </td>
+                            <td className="flex px-6 py-4 gap-4 whitespace-nowrap text-lg font-medium">
+                              {submission.status !== "APPROVED" && submission.status !== "REJECTED" && (
+                                  <div className="flex space-x-2 gap-4">
+                                    <button
+                                        className=" text-blue-600  hover:text-blue-900 rounded-full"
+                                        onClick={() => handleApprove(submission.id)}
+                                    >
+                                      Accept
+                                    </button>
+                                    <button
+                                        className="text-blue-600 hover:text-blue-900"
+                                        onClick={() => handleShow(submission.id)}
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                              )}
                               <button
-                                className=" text-blue-600  hover:text-blue-900 rounded-full"
-                                onClick={() => handleApprove(submission.id)}
+                                  className="text-grey text-xl hover:text-blue-900"
+                                  onClick={() => downloadTimesheet(submission)} // Individual download
                               >
-                                Accept
+                                <MdOutlineFileDownload className="w-10 h-8"/>
                               </button>
-                              <button
-                                className="text-blue-600 hover:text-blue-900"
-                                onClick={() => handleShow(submission.id)}
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                          <button
-                            className="text-grey text-xl hover:text-blue-900"
-                            onClick={() => downloadTimesheet(submission)} // Individual download
-                          >
-                          <MdOutlineFileDownload className="w-10 h-8"/>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            </td>
+                          </tr>
+                      ))}
+                      </tbody>
+                    </table>
+                  </div>
+              ) : (
+                  <p className="text-xl text-gray-500">No timesheets found for this filter.</p>
+              )}
+
+              {isDownloadEnabled && (
+                  <button
+                      onClick={downloadTimesheets}
+                      className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
+                  >
+                    Download All Timesheets
+                  </button>
+              )}
+
+              <div className="mt-4">
+                <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
               </div>
-            ) : (
-              <p className="text-xl text-gray-500">No timesheets found for this filter.</p>
-            )}
-
-            {isDownloadEnabled && (
-              <button
-                onClick={downloadTimesheets}
-                className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
-              >
-                Download All Timesheets
-              </button>
-            )}
-
-            <div className="mt-4">
-              <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
             </div>
           </div>
         </div>
+
+        {showModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+                <h2 className="text-xl font-bold mb-4 text-gray-900">Comments</h2>
+                <textarea
+                    className="w-full mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    rows={3}
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                    placeholder="Write your comments here"
+                />
+                <div className="mt-4 flex justify-end space-x-2">
+                  <button
+                      onClick={handleClose}
+                      className="bg-gray-200 text-lg text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-300 ease-in-out"
+                  >
+                    Close
+                  </button>
+                  <button
+                      onClick={handleReject}
+                      className="bg-blue-600 text-lg text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+                      disabled={loading}
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4 text-gray-900">Comments</h2>
-            <textarea
-              className="w-full mt-2 p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              rows={3}
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              placeholder="Write your comments here"
-            />
-            <div className="mt-4 flex justify-end space-x-2">
-              <button
-                onClick={handleClose}
-                className="bg-gray-200 text-lg text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-300 ease-in-out"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleReject}
-                className="bg-blue-600 text-lg text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
-                disabled={loading}
-              >
-                Reject
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
   );
 };
 
