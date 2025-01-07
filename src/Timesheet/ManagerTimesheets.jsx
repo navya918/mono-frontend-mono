@@ -404,5 +404,3 @@ const downloadTimesheet = (submission) => {
 
 
 export default ManagerTimesheets;
-
-//c
