@@ -49,7 +49,7 @@ const FormField = ({
 
 const firstName=localStorage.getItem('firstName');
 const lastName=localStorage.getItem('lastName');
-const fullName= firstName+" "+lastName
+const fullName= firstName+" "+lastName;
 
 
 const TimesheetManagement = ({ setSubmissions ,employeeId}) => {
@@ -81,6 +81,7 @@ const TimesheetManagement = ({ setSubmissions ,employeeId}) => {
 
   useEffect(() => {
     const employeeId=localStorage.getItem('employeeId');
+    
     if (location.state?.submission) {
       setFormData(location.state.submission);
       setIsEditing(true);

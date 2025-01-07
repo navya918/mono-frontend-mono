@@ -90,26 +90,88 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
     currentPage * submissionsPerPage
   );
 
-  const downloadTimesheet = (submission) => {
+  const downloadTimesheets = () => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
-
-    const lineHeight = 10; 
-    let y = 20; 
-
-    doc.text(`Timesheet for ${submission.clientName}`, 20, y);
-    y += lineHeight;
-    doc.text(`Project: ${submission.projectName}`, 20, y);
-    y += lineHeight;
-    doc.text(`Date Range: ${submission.startDate} - ${submission.endDate}`, 20, y);
-    y += lineHeight;
-    doc.text(`Total Hours: ${submission.totalNumberOfHours}`, 20, y);
-    y += lineHeight;
-    doc.text(`Status: ${submission.status}`, 20, y);
-
-    doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+ 
+    // Set the title for the document
+    doc.text("Timesheets", 20, 20);
+ 
+    // Define the table columns and headers
+    const columns = [
+      { title: "Client", dataKey: "clientName" },
+      { title: "Project", dataKey: "projectName" },
+      { title: "Date Range", dataKey: "dateRange" },
+      { title: "Total Hours", dataKey: "totalNumberOfHours" },
+      { title: "Status", dataKey: "status" },
+    ];
+ 
+    // Map the filtered submissions into rows for the table
+    const rows = currentSubmissions.map(submission => ({
+      clientName: submission.clientName,
+      projectName: submission.projectName,
+      dateRange: `${submission.startDate} - ${submission.endDate}`,
+      totalNumberOfHours: submission.totalNumberOfHours,
+      status: submission.status,
+    }));
+ 
+    // Add the table to the PDF
+    doc.autoTable({
+      head: [columns.map(col => col.title)], // Table headers
+      body: rows.map(row => [
+        row.clientName,
+        row.projectName,
+        row.dateRange,
+        row.totalNumberOfHours,
+        row.status,
+      ]), // Table data
+      startY: 30, // Position where the table will start
+      theme: "grid", // Optional: Adds alternating row colors for readability
+      margin: { top: 10, left: 20, right: 20 }, // Table margin
+    columnStyles: {
+      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+    },
+    });
+ 
+    // Save the generated PDF
+    doc.save("Timesheets.pdf");
   };
+ 
+ 
+const downloadTimesheet = (submission) => {
+  const doc = new jsPDF();
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(14);
+ 
+  // Title
+  doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
+ 
+  // Table data
+  const tableData = [
+    ["Project", submission.projectName],
+    ["Date Range", `${submission.startDate} - ${submission.endDate}`],
+    ["Total Hours", submission.totalNumberOfHours],
+    ["Status", submission.status],
+  ];
+ 
+  // Define table options and render
+  doc.autoTable({
+    startY: 30, // Position of the table
+    head: [["Field", "Value"]], // Table header
+    body: tableData, // Table body
+    theme: "grid", // Grid style for table
+    margin: { top: 10, left: 20, right: 20 }, // Table margin
+    columnStyles: {
+      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+    },
+  });
+ 
+  // Save the document as a PDF with a dynamic file name
+  doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+};
 
   const handleApplyDateRange = () => {
     setIsDownloadEnabled(true);
@@ -278,7 +340,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
 
             {isDownloadEnabled && (
               <button
-                onClick={downloadTimesheet}
+                onClick={downloadTimesheets}
                 className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
               >
                 Download All Timesheets
@@ -300,3 +362,4 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
 };
 
 export default EmployeeHomePage;
+//c
