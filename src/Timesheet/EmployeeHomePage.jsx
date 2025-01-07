@@ -5,6 +5,7 @@ import { jsPDF } from "jspdf";
 import Pagination from "./Pagination";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { MdOutlineFileDownload } from "react-icons/md";
+import "jspdf-autotable";
 
 const EmployeeHomePage = ({ submissions, setSubmissions }) => {
   const navigate = useNavigate();
@@ -362,3 +363,4 @@ const downloadTimesheet = (submission) => {
 };
 
 export default EmployeeHomePage;
+//c

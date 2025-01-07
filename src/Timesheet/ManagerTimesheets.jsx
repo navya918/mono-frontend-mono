@@ -6,6 +6,7 @@ import Pagination from './Pagination';
 import { jsPDF } from "jspdf";
 import { MdOutlineFileDownload } from 'react-icons/md';
 import 'react-calendar/dist/Calendar.css';
+import "jspdf-autotable";
 
 const ManagerTimesheets = () => {
   const [submissions, setSubmissions] = useState([]);
