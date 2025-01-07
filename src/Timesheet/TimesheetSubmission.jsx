@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { FaTimes } from "react-icons/fa";
 
 const TimesheetSubmission = ({ setSubmissions }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [isFormVisible, setIsFormVisible] = useState(true);
   const [errors, setErrors] = useState("");
   const { formData } = location.state || {};
 
@@ -30,6 +32,10 @@ const TimesheetSubmission = ({ setSubmissions }) => {
     }
   };
 
+  const handleCloseForm = () => {
+    setIsFormVisible(false); // Set form visibility to false
+  };
+
   // Function to handle going back to the form
   const handleBackToForm = () => {
     navigate('/timesheet-management', { state: { formData } });
@@ -38,11 +44,17 @@ const TimesheetSubmission = ({ setSubmissions }) => {
   // Destructure submissionData and prepare for rendering
   const {totalNumberOfHours, comments, managerName, status, id, ...displayData } = formData;
 
+  if (!isFormVisible) return navigate('/EmployeeHomePage');
+
   return (
     <div className="mx-auto py-4 px-6 text-black w-10/12">
       <div className="bg-white rounded-lg shadow-md m-2 border border-gray-300">
-        <div className="text-xs font-semibold mb-4 bg-gray-100 p-2 rounded-t-sm">
+        <div className="flex justify-between text-xs font-semibold mb-4 bg-gray-100 p-2 rounded-t-sm">
           <h2 className="text-3xl font-semibold">Submitted Timesheet Data</h2>
+          <FaTimes
+              onClick={handleCloseForm} // Close form when clicked
+              className="cursor-pointer text-gray-500 hover:text-gray-700 w-8 h-6"
+          />
         </div>
         <div className="p-2">
           <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-md border-r text-xl ">

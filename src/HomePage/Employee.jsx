@@ -23,6 +23,8 @@ export default function Employee() {
     const [employeesPerPage] = useState(7);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);  // Delete modal state
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
+
+    
     useEffect(() => {
         const email = localStorage.getItem('email');
         const role = localStorage.getItem('role');
@@ -36,6 +38,7 @@ export default function Employee() {
         }
     }, [navigate]);
 
+    
 
     const fetchEmployees = async () => {
        const token= localStorage.getItem('token');

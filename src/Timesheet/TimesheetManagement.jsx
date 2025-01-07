@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import { FaTimes } from "react-icons/fa";
 
 const FormField = ({
   label,
@@ -44,22 +46,17 @@ const FormField = ({
   </div>
 );
 
-// const employeeNumber= localStorage.getItem('employeeId');
-const managerNumber= localStorage.getItem('reportingTo');
+
 const firstName=localStorage.getItem('firstName');
 const lastName=localStorage.getItem('lastName');
 const fullName= firstName+" "+lastName
-const email=localStorage.getItem("email")
 
-// console.log(employeeNumber);
-console.log(managerNumber);
-console.log(fullName);
-console.log(email);
 
-const TimesheetManagement = ({ setSubmissions }) => {
+const TimesheetManagement = ({ setSubmissions ,employeeId}) => {
+  const [isFormVisible, setIsFormVisible] = useState(true);
   const [formData, setFormData] = useState({
-    employeeId:"",// employeeId: "MTL1021",
-    managerId: "MTL1001",
+    employeeId:localStorage.getItem("employeeId"),
+    managerId: "",
     employeeName:fullName,// employeeName: "Anitha",
     startDate: "",
     endDate: "",
@@ -72,7 +69,7 @@ const TimesheetManagement = ({ setSubmissions }) => {
     reportingManager: "",
     onCallSupport: "",
     taskDescription: "",
-    emailId:email
+    emailId:localStorage.getItem("email")
   });
   const [errors, setErrors] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -80,6 +77,7 @@ const TimesheetManagement = ({ setSubmissions }) => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [employeeData,setEmployeeData] = useState(null)
 
   useEffect(() => {
     const employeeId=localStorage.getItem('employeeId');
@@ -96,12 +94,60 @@ const TimesheetManagement = ({ setSubmissions }) => {
       employeeId,  
     }));
 
-  }, [location.state]);
+  }
+  , [location.state]);
+
+  useEffect(() => {
+    const employeeId = localStorage.getItem("employeeId");
+
+    if (!employeeId) {
+        console.error("Employee ID not found in localStorage");
+        return;
+    }
+
+    const fetchData = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            
+            if (!token) {
+                console.error("Token not found in localStorage");
+                return;
+            }
+
+            console.log("Fetching data with token:", token);  // Log token for debugging
+            
+            const response = await axios.get(
+                `https://talents-backend.azurewebsites.net/api/v1/employeeManager/getEmployee/${employeeId}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+
+            setEmployeeData(response.data);
+            setFormData((prevData) => ({ ...prevData, managerId: response.data.reportingTo}));
+            console.log("Fetched employee data:", response.data);  // Log response data
+
+        } catch (error) {
+            console.error("Error fetching the employee data", error.response || error.message);
+        }
+    };
+
+    fetchData();
+}, [employeeData]); 
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     setErrors(null); // Clear errors when input is updated
+  };
+
+  const handleCloseForm = () => {
+    setIsFormVisible(false); // Set form visibility to false
   };
 
   const handleSubmit = (e) => {
@@ -175,11 +221,17 @@ const TimesheetManagement = ({ setSubmissions }) => {
     { value: "false", label: "No" },
   ];
 
+  if (!isFormVisible) return navigate('/EmployeeHomePage');
+
   return (
     <div className="mx-auto py-8 px-4 font-serif w-8/12 text-xl ">
       <div className="bg-white shadow-md rounded-lg p-6 border border-gray-300">
-        <div className="text-3xl font-semibold mb-6 bg-gray-100 p-2 rounded-t-sm">
+        <div className="flex justify-between text-3xl font-semibold mb-6 bg-gray-100 p-2 rounded-t-sm">
           {isEditing ? "Edit Timesheet" : "Submit Timesheet"}
+          <FaTimes
+            onClick={handleCloseForm} // Close form when clicked
+            className="cursor-pointer text-gray-500 hover:text-gray-700"
+          />
         </div>
         <form onSubmit={handleSubmit}>
           <div className="flex flex-row min-w-40 gap-5 text-xl">
