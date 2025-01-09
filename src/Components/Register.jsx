@@ -95,7 +95,7 @@ const Register = () => {
 
         try {
             console.log("Sending registration request to API"); // Debug message
-            const response = await axios.post("https://talents-backend.azurewebsites.net/api/v1/employeeManager/register", formData, {
+            const response = await axios.post("http://localhost:8085/api/v1/employeeManager/register", formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

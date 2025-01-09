@@ -42,7 +42,7 @@ const TimesheetSubmission = ({ setSubmissions }) => {
   };
 
   // Destructure submissionData and prepare for rendering
-  const {totalNumberOfHours, comments, managerName, status, id, ...displayData } = formData;
+  const {totalNumberOfHours, comments, reportingManager, managerName, manager, status, id, ...displayData } = formData;
 
   if (!isFormVisible) return navigate('/EmployeeHomePage');
 

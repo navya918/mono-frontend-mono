@@ -47,12 +47,10 @@ const FormField = ({
 );
 
 
-const firstName=localStorage.getItem('firstName');
-const lastName=localStorage.getItem('lastName');
-const fullName= firstName+" "+lastName;
-
-
 const TimesheetManagement = ({ setSubmissions ,employeeId}) => {
+  const firstName=localStorage.getItem('firstName');
+  const lastName=localStorage.getItem('lastName');
+  const fullName= firstName+" "+lastName;
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [formData, setFormData] = useState({
     employeeId:localStorage.getItem("employeeId"),

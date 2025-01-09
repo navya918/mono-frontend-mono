@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jsPDF } from "jspdf";
-import Pagination from "./Pagination";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { MdOutlineFileDownload } from "react-icons/md";
 import "jspdf-autotable";
+import {ChevronLeftIcon,ChevronRightIcon} from '@heroicons/react/20/solid';
 
 const EmployeeHomePage = ({ submissions, setSubmissions }) => {
   const navigate = useNavigate();
@@ -95,10 +95,10 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
- 
+
     // Set the title for the document
     doc.text("Timesheets", 20, 20);
- 
+
     // Define the table columns and headers
     const columns = [
       { title: "Client", dataKey: "clientName" },
@@ -107,7 +107,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
       { title: "Total Hours", dataKey: "totalNumberOfHours" },
       { title: "Status", dataKey: "status" },
     ];
- 
+
     // Map the filtered submissions into rows for the table
     const rows = currentSubmissions.map(submission => ({
       clientName: submission.clientName,
@@ -116,7 +116,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
       totalNumberOfHours: submission.totalNumberOfHours,
       status: submission.status,
     }));
- 
+
     // Add the table to the PDF
     doc.autoTable({
       head: [columns.map(col => col.title)], // Table headers
@@ -130,49 +130,48 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
       startY: 30, // Position where the table will start
       theme: "grid", // Optional: Adds alternating row colors for readability
       margin: { top: 10, left: 20, right: 20 }, // Table margin
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
-      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
-    },
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+        1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+      },
     });
- 
+
     // Save the generated PDF
     doc.save("Timesheets.pdf");
   };
- 
- 
-const downloadTimesheet = (submission) => {
-  const doc = new jsPDF();
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(14);
- 
-  // Title
-  doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
- 
-  // Table data
-  const tableData = [
-    ["Project", submission.projectName],
-    ["Date Range", `${submission.startDate} - ${submission.endDate}`],
-    ["Total Hours", submission.totalNumberOfHours],
-    ["Status", submission.status],
-  ];
- 
-  // Define table options and render
-  doc.autoTable({
-    startY: 30, // Position of the table
-    head: [["Field", "Value"]], // Table header
-    body: tableData, // Table body
-    theme: "grid", // Grid style for table
-    margin: { top: 10, left: 20, right: 20 }, // Table margin
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
-      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
-    },
-  });
- 
-  // Save the document as a PDF with a dynamic file name
-  doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
-};
+
+  const downloadTimesheet = (submission) => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
+
+    // Title
+    doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
+
+    // Table data
+    const tableData = [
+      ["Project", submission.projectName],
+      ["Date Range", `${submission.startDate} - ${submission.endDate}`],
+      ["Total Hours", submission.totalNumberOfHours],
+      ["Status", submission.status],
+    ];
+
+    // Define table options and render
+    doc.autoTable({
+      startY: 30, // Position of the table
+      head: [["Field", "Value"]], // Table header
+      body: tableData, // Table body
+      theme: "grid", // Grid style for table
+      margin: { top: 10, left: 20, right: 20 }, // Table margin
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
+        1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
+      },
+    });
+
+    // Save the document as a PDF with a dynamic file name
+    doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+  };
 
   const handleApplyDateRange = () => {
     setIsDownloadEnabled(true);
@@ -284,12 +283,10 @@ const downloadTimesheet = (submission) => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentSubmissions.map((submission) => (
                       <tr key={submission.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-900">
-                          {submission.startDate} - {submission.endDate}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.clientName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.projectName}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.totalNumberOfHours}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900">{submission.startDate} - {submission.endDate}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{submission.clientName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{submission.projectName}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{submission.totalNumberOfHours}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-lg leading-5 font-semibold rounded-full ${
@@ -336,7 +333,7 @@ const downloadTimesheet = (submission) => {
                 </table>
               </div>
             ) : (
-              <p className="text-center text-gray-500 mt-6">No timesheets submitted yet.</p>
+              <div className="text-center py-10">No submissions found</div>
             )}
 
             {isDownloadEnabled && (
@@ -348,13 +345,81 @@ const downloadTimesheet = (submission) => {
               </button>
             )}
 
-            <div className="mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                paginate={paginate}
-              />
+            {/* Pagination */}
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-lg text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">{(currentPage - 1) * submissionsPerPage + 1}</span> to{" "}
+                    <span className="font-medium">
+                      {Math.min(currentPage * submissionsPerPage, filteredSubmissions.length)}
+                    </span>{" "}
+                    of <span className="font-medium">{filteredSubmissions.length}</span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
+                  >
+                    <button
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeftIcon
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                      />
+                    </button>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => paginate(index + 1)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          index + 1 === currentPage
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </nav>
+                </div>
+              </div>
             </div>
+            {/* End Pagination */}
           </div>
         </div>
       </div>
@@ -363,4 +428,3 @@ const downloadTimesheet = (submission) => {
 };
 
 export default EmployeeHomePage;
-//c

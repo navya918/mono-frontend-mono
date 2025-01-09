@@ -2,10 +2,10 @@ import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import Loader from "./loader.js";
 import Calendar from "react-calendar";
-import Pagination from './Pagination';
 import { jsPDF } from "jspdf";
 import { MdOutlineFileDownload } from 'react-icons/md';
 import 'react-calendar/dist/Calendar.css';
+import {ChevronLeftIcon,ChevronRightIcon} from '@heroicons/react/20/solid';
 import "jspdf-autotable";
 
 const ManagerTimesheets = () => {
@@ -18,19 +18,18 @@ const ManagerTimesheets = () => {
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
   const [startDate, setStartDate] = useState(""); 
   const [endDate, setEndDate] = useState(""); 
   const [isDownloadEnabled, setIsDownloadEnabled] = useState(false);
 
-  // Fetch the managerId from localStorage
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);  // Set the number of items per page
+
   const managerId = "";
   const employeeId = localStorage.getItem('employeeId');
 
-  // Memoizing fetchSubmissions with useCallback to prevent unnecessary re-creations
   const fetchSubmissions = useCallback(async () => {
-    if (!managerId) return; // Prevent API call if no managerId is found
+    if (!managerId) return;
 
     try {
       let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${managerId}`;
@@ -57,19 +56,10 @@ const ManagerTimesheets = () => {
   useEffect(() => {
     if (managerId) {
       fetchSubmissions();
-      const interval = setInterval(fetchSubmissions, 50000);
+      const interval = setInterval(fetchSubmissions, 5000000);
       return () => clearInterval(interval);
     }
-  }, [fetchSubmissions, managerId]); // Added fetchSubmissions to dependencies
-
-  useEffect(() => {
-    const updateItemsPerPage = () => {
-      setItemsPerPage(window.innerWidth < 576 ? 2 : window.innerWidth < 768 ? 3 : 5);
-    };
-    updateItemsPerPage();
-    window.addEventListener("resize", updateItemsPerPage);
-    return () => window.removeEventListener("resize", updateItemsPerPage);
-  }, []);
+  }, [fetchSubmissions, managerId]);
 
   const handleFilter = (status) => {
     if (status === "ALL") {
@@ -77,6 +67,7 @@ const ManagerTimesheets = () => {
     } else {
       setFilteredSubmissions(submissions.filter((sub) => sub.status === status));
     }
+    setCurrentPage(1);  // Reset to the first page when filter changes
   };
 
   const handleShow = (id) => { setCurrentId(id); setComments(""); setShowModal(true); };
@@ -107,26 +98,13 @@ const ManagerTimesheets = () => {
     }
   };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  const indexOfLastSubmission = currentPage * itemsPerPage;
-  const indexOfFirstSubmission = indexOfLastSubmission - itemsPerPage;
-  const currentSubmissions = filteredSubmissions.slice(indexOfFirstSubmission, indexOfLastSubmission);
-  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-
-  const capitalizeFirstLetter = (str) => {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
-
   const downloadTimesheets = () => {
     const doc = new jsPDF();
     doc.setFont("helvetica", "normal");
     doc.setFontSize(14);
  
-    // Set the title for the document
     doc.text("Timesheets", 20, 20);
  
-    // Define the table columns and headers
     const columns = [
       { title: "Client", dataKey: "clientName" },
       { title: "Project", dataKey: "projectName" },
@@ -135,8 +113,7 @@ const ManagerTimesheets = () => {
       { title: "Status", dataKey: "status" },
     ];
  
-    // Map the filtered submissions into rows for the table
-    const rows = currentSubmissions.map(submission => ({
+    const rows = filteredSubmissions.map(submission => ({
       clientName: submission.clientName,
       projectName: submission.projectName,
       dateRange: `${submission.startDate} - ${submission.endDate}`,
@@ -144,67 +121,71 @@ const ManagerTimesheets = () => {
       status: submission.status,
     }));
  
-    // Add the table to the PDF
     doc.autoTable({
-      head: [columns.map(col => col.title)], // Table headers
+      head: [columns.map(col => col.title)],
       body: rows.map(row => [
         row.clientName,
         row.projectName,
         row.dateRange,
         row.totalNumberOfHours,
         row.status,
-      ]), // Table data
-      startY: 30, // Position where the table will start
-      theme: "grid", // Optional: Adds alternating row colors for readability
-      margin: { top: 10, left: 20, right: 20 }, // Table margin
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
-      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
-    },
+      ]),
+      startY: 30,
+      theme: "grid",
+      margin: { top: 10, left: 20, right: 20 },
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" },
+        1: { cellWidth: "auto", halign: "left" },
+      },
     });
  
-    // Save the generated PDF
     doc.save("Timesheets.pdf");
   };
- 
 
-const downloadTimesheet = (submission) => {
-  const doc = new jsPDF();
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(14);
+  const downloadTimesheet = (submission) => {
+    const doc = new jsPDF();
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(14);
 
-  // Title
-  doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
+    doc.text(`Timesheet for ${submission.clientName}`, 20, 20);
 
-  // Table data
-  const tableData = [
-    ["Project", submission.projectName],
-    ["Date Range", `${submission.startDate} - ${submission.endDate}`],
-    ["Total Hours", submission.totalNumberOfHours],
-    ["Status", submission.status],
-  ];
+    const tableData = [
+      ["Project", submission.projectName],
+      ["Date Range", `${submission.startDate} - ${submission.endDate}`],
+      ["Total Hours", submission.totalNumberOfHours],
+      ["Status", submission.status],
+    ];
 
-  // Define table options and render
-  doc.autoTable({
-    startY: 30, // Position of the table
-    head: [["Field", "Value"]], // Table header
-    body: tableData, // Table body
-    theme: "grid", // Grid style for table
-    margin: { top: 10, left: 20, right: 20 }, // Table margin
-    columnStyles: {
-      0: { cellWidth: "auto", halign: "left" }, // Left-align Field column
-      1: { cellWidth: "auto", halign: "left" }, // Left-align Value column
-    },
-  });
+    doc.autoTable({
+      startY: 30,
+      head: [["Field", "Value"]],
+      body: tableData,
+      theme: "grid",
+      margin: { top: 10, left: 20, right: 20 },
+      columnStyles: {
+        0: { cellWidth: "auto", halign: "left" },
+        1: { cellWidth: "auto", halign: "left" },
+      },
+    });
 
-  // Save the document as a PDF with a dynamic file name
-  doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
-};
+    doc.save(`Timesheet_${submission.clientName}_${submission.projectName}.pdf`);
+  };
 
-  // Set download button visibility when date range is applied
   const handleApplyDateRange = () => {
     setIsDownloadEnabled(true);
     setCurrentPage(1); // Reset pagination when applying date range
+  };
+
+  // Pagination logic
+  const indexOfLastEmployee = currentPage * itemsPerPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - itemsPerPage;
+  const currentEmployees = filteredSubmissions.slice(indexOfFirstEmployee, indexOfLastEmployee);
+  const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const capitalizeFirstLetter = (str) => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   };
 
   return (
@@ -237,12 +218,12 @@ const downloadTimesheet = (submission) => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-5xl">
               {["TOTAL REQUESTS", "APPROVED", "PENDING", "REJECTED"].map((status) => (
                 <div
                   key={status}
                   onClick={() => handleFilter(status === "TOTAL REQUESTS" ? "ALL" : status)}
-                  className={`p-4 rounded-lg text-xl text-center shadow-md cursor-pointer transition duration-300 ease-in-out ${
+                  className={`p-4 rounded-lg text-2xl text-center shadow-md cursor-pointer transition duration-300 ease-in-out ${
                     status === "TOTAL REQUESTS"
                       ? "bg-blue-100 hover:bg-blue-200"
                       : status === "APPROVED"
@@ -258,33 +239,33 @@ const downloadTimesheet = (submission) => {
                   </p>
                 </div>
               ))}
-              </div>
+            </div>
 
-              <div className="mb-10">
-                <label className="block text-lg font-medium text-gray-700">Filter by Date Range</label>
-                <div className="flex gap-4">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-md"
-                  />
-                  <button
-                    onClick={handleApplyDateRange}
-                    className="bg-blue-500 text-white py-2 px-4 rounded-md"
-                  >
-                    Apply Date Range
-                  </button>
-                </div>
+            <div className="mb-10">
+              <label className="block text-lg font-medium text-gray-700">Filter by Date Range</label>
+              <div className="flex gap-4">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="p-2 border border-gray-300 rounded-md"
+                />
+                <button
+                  onClick={handleApplyDateRange}
+                  className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                >
+                  Apply Date Range
+                </button>
               </div>
+            </div>
 
-            {currentSubmissions.length ? (
+            {currentEmployees.length ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -300,7 +281,7 @@ const downloadTimesheet = (submission) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {currentSubmissions.map((submission) => (
+                    {currentEmployees.map((submission) => (
                       <tr key={submission.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.startDate}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-900">{submission.endDate}</td>
@@ -323,26 +304,26 @@ const downloadTimesheet = (submission) => {
                         </td>
                         <td className="flex px-6 py-4 gap-4 whitespace-nowrap text-lg font-medium">
                           {submission.status !== "APPROVED" && submission.status !== "REJECTED" && (
-                            <div className="flex space-x-2 gap-4">
+                            <>
                               <button
-                                className=" text-blue-600  hover:text-blue-900 rounded-full"
                                 onClick={() => handleApprove(submission.id)}
+                                className="text-blue-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
                               >
-                                Accept
+                                Approve
                               </button>
                               <button
-                                className="text-blue-600 hover:text-blue-900"
                                 onClick={() => handleShow(submission.id)}
+                                className="text-blue-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
                               >
                                 Reject
                               </button>
-                            </div>
+                            </>
                           )}
                           <button
-                            className="text-grey text-xl hover:text-blue-900"
-                            onClick={() => downloadTimesheet(submission)} // Individual download
+                            onClick={() => downloadTimesheet(submission)}
+                            className="text-grey hover:text-green-900 text-3xl"
                           >
-                          <MdOutlineFileDownload className="w-10 h-8"/>
+                            <MdOutlineFileDownload />
                           </button>
                         </td>
                       </tr>
@@ -351,7 +332,7 @@ const downloadTimesheet = (submission) => {
                 </table>
               </div>
             ) : (
-              <p className="text-xl text-gray-500">No timesheets found for this filter.</p>
+              <div className="text-center text-lg text-gray-600 mt-4">No submissions found.</div>
             )}
 
             {isDownloadEnabled && (
@@ -363,8 +344,76 @@ const downloadTimesheet = (submission) => {
               </button>
             )}
 
-            <div className="mt-4">
-              <Pagination currentPage={currentPage} totalPages={totalPages} paginate={paginate} />
+            {/* Pagination */}
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-lg text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">
+                      {indexOfFirstEmployee + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(indexOfLastEmployee, filteredSubmissions.length)}
+                    </span>{" "}
+                    of <span className="font-medium">{counts.total}</span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
+                  >
+                    <button
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <span className="sr-only">Previous</span>
+                      <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                    {[...Array(totalPages)].map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => paginate(index + 1)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          index + 1 === currentPage
+                            ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                    >
+                      <span className="sr-only">Next</span>
+                      <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
+                    </button>
+                  </nav>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -402,6 +451,5 @@ const downloadTimesheet = (submission) => {
     </div>
   );
 };
-
 
 export default ManagerTimesheets;
