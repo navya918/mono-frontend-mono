@@ -14,6 +14,7 @@ import ModalWrapper from '../EmployeeComponents/ModalWrapper';
 import MultiStepForm from '../EmployeeComponents/MultiStepForm';
 import Loader from "../Assets/Loader";
 
+
 export default function Employee() {
     const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,8 +24,9 @@ export default function Employee() {
     const [employeesPerPage] = useState(7);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);  // Delete modal state
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
+    const [selfDelete, setSelfDelete] = useState(false);
 
-    
+
     useEffect(() => {
         const email = localStorage.getItem('email');
         const role = localStorage.getItem('role');
@@ -38,17 +40,17 @@ export default function Employee() {
         }
     }, [navigate]);
 
-    
+
 
     const fetchEmployees = async () => {
-       const token= localStorage.getItem('token');
+        const token = localStorage.getItem('token');
         setLoading(true);
         try {
-            const response = await fetch('https://talents-backend.azurewebsites.net/api/v1/employeeManager/employees',{
-                method:'GET',
-                headers:{
-                    'Authorization':`Bearer ${token}`,
-                    'Content-Type':'application/json'
+            const response = await fetch('https://talents-backend.azurewebsites.net/api/v1/employeeManager/employees', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
             console.log(response.data);
@@ -100,8 +102,13 @@ export default function Employee() {
     };
 
     const handleDeleteModalOpen = (employee) => {
-        setEmployeeToDelete(employee);
-        setIsDeleteModalOpen(true);  // Open delete confirmation modal
+        if (employee.employeeId === localStorage.getItem("employeeId")) {
+            setSelfDelete(true);
+        }
+        else {
+            setEmployeeToDelete(employee);
+            setIsDeleteModalOpen(true);
+        }  // Open delete confirmation modal
     };
 
     const handleDeleteModalClose = () => {
@@ -112,7 +119,7 @@ export default function Employee() {
     const handleCloseModal = () => setIsModalOpen(false);
 
     const totalEmployees = employees.length;
-    const totalAdmins = employees.filter(emp => emp.role === 'Admin'||'admin').length;
+    const totalAdmins = employees.filter(emp => emp.role === 'Admin' || 'admin').length;
     const totalDepartments = [...new Set(employees.map(emp => emp.department))].length;
 
     // Pagination logic
@@ -189,75 +196,75 @@ export default function Employee() {
                             onClick={handleOpenModal}
                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
-                            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true"/>
+                            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
                             Add Employee
                         </button>
                     </div>
                     {loading ? (
                         <div className="text-center py-4">
-                            <Loader/>
+                            <Loader />
                         </div>
                     ) : (
                         <>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
-                                    <tr>
-                                        <th scope="col"
-                                            className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name
-                                        </th>
-                                        <th scope="col"
-                                            className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Corporate
-                                            Email
-                                        </th>
-                                        <th scope="col"
-                                            className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Job Role</th>
-                                        <th scope="col" className="relative px-6 py-3">
-                                            <span className="sr-only">Edit</span>
-                                        </th>
-                                        <th scope="col" className="relative px-6 py-3">
-                                            <span className="sr-only">Delete</span>
-                                        </th>
-                                    </tr>
+                                        <tr>
+                                            <th scope="col"
+                                                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name
+                                            </th>
+                                            <th scope="col"
+                                                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Corporate
+                                                Email
+                                            </th>
+                                            <th scope="col"
+                                                className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Job Role</th>
+                                            <th scope="col" className="relative px-6 py-3">
+                                                <span className="sr-only">Edit</span>
+                                            </th>
+                                            <th scope="col" className="relative px-6 py-3">
+                                                <span className="sr-only">Delete</span>
+                                            </th>
+                                        </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                    {currentEmployees.map((employee) => (
-                                        <tr key={`${employee.corporateEmail}-${employee.firstName}`}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center">
+                                        {currentEmployees.map((employee) => (
+                                            <tr key={`${employee.corporateEmail}-${employee.firstName}`}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
 
-                                                    <div className="ml-4">
-                                                        <button
-                                                            className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200"
-                                                            onClick={() => navigate(`/employeedetails/${employee.id}`)}
-                                                        >
-                                                            {employee.firstName} {employee.lastName}
-                                                        </button>
-                                                        <div className="text-sm text-gray-500">{employee.email}</div>
+                                                        <div className="ml-4">
+                                                            <button
+                                                                className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors duration-200"
+                                                                onClick={() => navigate(`/employeedetails/${employee.id}`)}
+                                                            >
+                                                                {employee.firstName} {employee.lastName}
+                                                            </button>
+                                                            <div className="text-sm text-gray-500">{employee.email}</div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-lg text-gray-900">{employee.corporateEmail}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.role}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.jobRole}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button className="text-blue-600 hover:text-blue-900">
-                                                    <PencilIcon className="h-5 w-5" aria-hidden="true" />
-                                                </button>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
-                                                <button
-                                                    onClick={() => handleDeleteModalOpen(employee)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="text-lg text-gray-900">{employee.corporateEmail}</div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.role}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.jobRole}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button className="text-blue-600 hover:text-blue-900">
+                                                        <PencilIcon className="h-5 w-5" aria-hidden="true" />
+                                                    </button>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
+                                                    <button
+                                                        onClick={() => handleDeleteModalOpen(employee)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        <TrashIcon className="h-5 w-5" aria-hidden="true" />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -300,11 +307,10 @@ export default function Employee() {
                                                 <button
                                                     key={index}
                                                     onClick={() => paginate(index + 1)}
-                                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                                        index + 1 === currentPage
+                                                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${index + 1 === currentPage
                                                             ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
                                                             : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {index + 1}
                                                 </button>
@@ -332,7 +338,9 @@ export default function Employee() {
             </ModalWrapper>
 
 
-
+            {/* <ModalWrapper open={selfDelete} onClose={handleCloseModal}>
+                <AccountDeletionModal/>
+            </ModalWrapper> */}
 
             {isDeleteModalOpen && (
                 <ModalWrapper open={isDeleteModalOpen} onClose={handleDeleteModalClose}>
@@ -354,6 +362,35 @@ export default function Employee() {
                         </div>
                     </div>
                 </ModalWrapper>
+            )}
+
+
+            {selfDelete && (
+                <ModalWrapper open={selfDelete} onClose={handleDeleteModalClose}>
+                    <div className="p-4 text-center flex flex-col items-center justify-center">
+                        <h2 className="text-2xl font-semibold mb-4 text-red-600">Account Deletion</h2> {/* Increased font size */}
+                        <p className="text-lg text-gray-500 mb-6"> {/* Adjusted margin */}
+                            You can't delete your own account. Contact "Raja" to deactivate your account.
+                        </p>
+                        <p className="text-lg text-gray-500 mb-6"> {/* Adjusted margin */}
+                            Please reach out to:{" "}
+                            <a
+                                href="mailto:raja@middlewaretalents.com"
+                                className="font-medium text-blue-600 hover:underline"
+                            >
+                                rajahk@middlewaretalents.com
+                            </a>
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setSelfDelete(false)}
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded float-right"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </ModalWrapper>
+
             )}
         </div>
     );
