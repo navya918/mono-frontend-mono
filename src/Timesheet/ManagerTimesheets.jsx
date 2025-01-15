@@ -172,8 +172,12 @@ const ManagerTimesheets = () => {
   };
 
   const handleApplyDateRange = () => {
-    setIsDownloadEnabled(true);
-    setCurrentPage(1); // Reset pagination when applying date range
+    if (startDate && endDate) { // Only apply the date range if both dates are provided
+      setIsDownloadEnabled(true);
+      setCurrentPage(1); // Reset to the first page
+    } else {
+      alert("Please select both start and end dates.");
+    }
   };
 
   // Pagination logic
@@ -258,7 +262,8 @@ const ManagerTimesheets = () => {
                 />
                 <button
                   onClick={handleApplyDateRange}
-                  className="bg-blue-500 text-white py-2 px-4 rounded-md"
+                  className={`bg-blue-500 text-white py-2 px-4 rounded-md ${!startDate || !endDate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  disabled={!startDate || !endDate}
                 >
                   Apply Date Range
                 </button>
@@ -338,7 +343,8 @@ const ManagerTimesheets = () => {
             {isDownloadEnabled && (
               <button
                 onClick={downloadTimesheets}
-                className="bg-blue-500 text-white py-2 px-4 rounded-md mt-4"
+                className={`bg-blue-500 text-white py-2 px-4 rounded-md mt-4 ${currentEmployees.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={currentEmployees.length === 0}
               >
                 Download All Timesheets
               </button>
