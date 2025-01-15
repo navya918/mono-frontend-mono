@@ -27,7 +27,7 @@ export default function UpdateTasks(props) {
 
       if(taskName!=="" && taskDetails!==""){
         setIsError(false)
-        await axios.put(`https://talents-backebd3.azurewebsites.net/apis/employees/tasks/${taskId}`, {
+        await axios.put(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${taskId}`, {
         taskId:taskId,
         taskAssignedBy:localStorage.getItem('email'),
         personName:personName,
