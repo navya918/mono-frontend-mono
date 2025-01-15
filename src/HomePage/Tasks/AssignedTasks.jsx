@@ -25,16 +25,25 @@ const AssignedTasks = (props) => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);  // Current page
   const [itemsPerPage] = useState(5);  // Items per page (can be adjusted)
+  const employeeId=localStorage.getItem("employeeId");
 
   useEffect(() => {
     const fetchData = async () => {
-      const email = localStorage.getItem('email');
+
       let url;
 
       if (taskType === "allTasks") {
-        url = `https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedBy/${email}`;
+        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `https://talents-backebd3.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${email}`;
+        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+      }
+      else if(taskType==="pendingTasks"){
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
+        console.log(2);
+      }
+      else if(taskType==="completedTasks"){
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
+        console.log(2);
       }
 
       try {
@@ -48,7 +57,7 @@ const AssignedTasks = (props) => {
     };
 
     fetchData();
-  }, [taskType]);  // Rerun the effect when taskType changes
+  }, [taskType, employeeId]);  // Rerun the effect when taskType changes
 
   const isLoggedIn = localStorage.getItem('email');
   if (isLoggedIn === null) {
@@ -68,17 +77,17 @@ const AssignedTasks = (props) => {
   const confirmDelete = async () => {
     setLoading(true);
     const id = deleteId;
-    await axios.delete(`https://talents-backebd3.azurewebsites.net/apis/employees/tasks/${id}`);
+    await axios.delete(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${id}`);
 
     // Refresh data after deletion
     const fetchData = async () => {
-      const email = localStorage.getItem('email');
+
       let url;
 
       if (taskType === "allTasks") {
-        url = `https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedBy/${email}`;
+        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `https://talents-backebd3.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${email}`;
+        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
       }
 
       try {
@@ -98,7 +107,7 @@ const AssignedTasks = (props) => {
     setLoading(true);
     if (!isOpen) {
       try {
-        const response = await axios.get(`https://talents-backebd3.azurewebsites.net/apis/employees/tasks/${taskId}`);
+        const response = await axios.get(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${taskId}`);
         setTaskData(response.data);
         setLoading(false);
       } catch (error) {
@@ -108,13 +117,13 @@ const AssignedTasks = (props) => {
       setIsOpen(true);
     } else {
       const fetchData = async () => {
-        const email = localStorage.getItem('email');
+
         let url;
 
         if (taskType === "allTasks") {
-          url = `https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedBy/${email}`;
+          url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
         } else if (taskType === "overdueTasks") {
-          url = `https://talents-backebd3.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${email}`;
+          url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         }
 
         try {
@@ -149,22 +158,22 @@ const AssignedTasks = (props) => {
       const fetchData = async () => {
       setTaskType(event.target.value);
       setCurrentPage(1);
-        const email=localStorage.getItem('email');
+
         let url;
       if(event.target.value==="allTasks"){
-        url=`https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedBy/${email}`;
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
         console.log(1);
       }
       else if(event.target.value==="overdueTasks"){
-        url=`https://talents-backebd3.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${email}`;
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="pendingTasks"){
-        url=`https://talents-backebd3.azurewebsites.net/apis/employees/PendingTasks/AssignedFrom/${email}`;
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="completedTasks"){
-        url=`https://talents-backebd3.azurewebsites.net/apis/employees/CompletedTasks/AssignedFrom/${email}`;
+        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       console.log(taskType);

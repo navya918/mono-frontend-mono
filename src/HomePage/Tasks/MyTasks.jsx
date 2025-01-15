@@ -13,12 +13,13 @@ const MyTasks = props => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1); // Current page
   const [itemsPerPage] = useState(5); // Items per page (can be adjusted)
+  const employeeId=localStorage.getItem("employeeId");
 
   useEffect(() => {
     const fetchData = async () => {
-      const email = localStorage.getItem('email');
+
       try {
-        const response = await axios.get(`https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedTo/${email}`);
+        const response = await axios.get(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedTo/${employeeId}`);
         setData(response.data);
         setLoading(false);
       } catch (error) {
@@ -28,7 +29,7 @@ const MyTasks = props => {
     };
 
     fetchData();
-  }, []); // Only run once when component mounts
+  }, [employeeId]); // Only run once when component mounts
 
   // If the user is not logged in, redirect to login page
   const isLoggedIn = localStorage.getItem('email');
@@ -52,17 +53,17 @@ const MyTasks = props => {
     setTaskType(event.target.value);
     setCurrentPage(1); // Reset to the first page when task type changes
 
-    const email = localStorage.getItem('email');
+
     let url;
 
     if (event.target.value === "allTasks") {
-      url = `https://talents-backebd3.azurewebsites.net/apis/employees/tasksAssignedTo/${email}`;
+      url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedTo/${employeeId}`;
     } else if (event.target.value === "overdueTasks") {
-      url = `https://talents-backebd3.azurewebsites.net/apis/employees/OverdueTasks/PersonEmail/${email}`;
+      url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/PersonId/${employeeId}`;
     } else if (event.target.value === "pendingTasks") {
-      url = `https://talents-backebd3.azurewebsites.net/apis/employees/PendingTasks/PersonEmail/${email}`;
+      url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/PendingTasks/PersonId/${employeeId}`;
     } else if (event.target.value === "completedTasks") {
-      url = `https://talents-backebd3.azurewebsites.net/apis/employees/CompletedTasks/PersonEmail/${email}`;
+      url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/CompletedTasks/PersonId/${employeeId}`;
     }
 
     try {

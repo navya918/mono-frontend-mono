@@ -4,19 +4,22 @@ import Loader from '../../Assets/Loader';
 
 export default function AddTask(props) {
   const { taskCreate, personToAddTask } = props;
-  const [personName, setName] = useState(personToAddTask[0]?.firstName || "");
-  const [email, setEmail] = useState(personToAddTask[0]?.corporateEmail || "");
+  const [personName, setName] = useState(personToAddTask[0].firstName+" "+personToAddTask[0].lastName || "");
+  const [email, setEmail] = useState(personToAddTask[0].corporateEmail || "");
   const [taskName, setTaskName] = useState("");
   const [taskDetails, setTaskDetails] = useState("");
   const [effectiveDate, setEffectiveDate] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const personId=personToAddTask[0].employeeId;
+  console.log(personId);
 
   const taskCreated = async (event) => {
     event.preventDefault();
     const taskDetailsd = {
-      taskAssignedFrom: localStorage.getItem('email'),
+      taskAssignedById: localStorage.getItem("employeeId"),
+      taskAssignedByEmail: localStorage.getItem('email'),
       personName,
       personEmail: email,
       taskName,
@@ -28,9 +31,11 @@ export default function AddTask(props) {
     if (taskName !== "" && taskDetails !== "") {
       setIsLoading(true);
       try {
-        await axios.post("https://talents-backebd3.azurewebsites.net/apis/employees/tasks", {
-          taskAssignedPersonName:localStorage.getItem('firstName')+" "+localStorage.getItem('lastName'),
-          taskAssignedFrom: localStorage.getItem('email'),
+        await axios.post("https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks", {
+          taskAssignedById: localStorage.getItem("employeeId"),
+          taskAssignedByName:localStorage.getItem('firstName')+" "+localStorage.getItem('lastName'),
+          taskAssignedByEmail: localStorage.getItem('email'),
+          personId,
           personName,
           personEmail: email,
           taskName,
