@@ -13,6 +13,7 @@ import {
 import ModalWrapper from '../EmployeeComponents/ModalWrapper';
 import MultiStepForm from '../EmployeeComponents/MultiStepForm';
 import Loader from "../Assets/Loader";
+import UpdateEmployeeModal from './EmployeeUpdate/UpdateEmployeeModal';
 
 
 export default function Employee() {
@@ -25,6 +26,8 @@ export default function Employee() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);  // Delete modal state
     const [employeeToDelete, setEmployeeToDelete] = useState(null);
     const [selfDelete, setSelfDelete] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [updateEmployeeId, setUpdateEmployeeId]=useState(null);
 
 
     useEffect(() => {
@@ -44,6 +47,7 @@ export default function Employee() {
 
     const fetchEmployees = async () => {
         const token = localStorage.getItem('token');
+        setIsUpdateModalOpen(false)
         setLoading(true);
         try {
             const response = await fetch('https://talents-backend.azurewebsites.net/api/v1/employeeManager/employees', {
@@ -64,8 +68,14 @@ export default function Employee() {
             console.error(error);
         } finally {
             setLoading(false);
+            setIsUpdateModalOpen(false)
         }
     };
+
+    const updateEmployeeDetails=(id)=>{
+        setUpdateEmployeeId(id);
+        setIsUpdateModalOpen(true)
+    }
 
     const handleDeleteEmployee = async (employeeId) => {
         const token = localStorage.getItem('token');
@@ -251,8 +261,12 @@ export default function Employee() {
                                                 <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.role}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-lg text-gray-500">{employee.jobRole}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button className="text-blue-600 hover:text-blue-900">
-                                                        <PencilIcon className="h-5 w-5" aria-hidden="true" />
+                                                    <button
+                                                        onClick={()=>updateEmployeeDetails(employee.employeeId)}
+                                                        className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+                                                        aria-label="Edit employee"
+                                                    >
+                                                        <PencilIcon className="h-5 w-5" />
                                                     </button>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-medium">
@@ -308,8 +322,8 @@ export default function Employee() {
                                                     key={index}
                                                     onClick={() => paginate(index + 1)}
                                                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${index + 1 === currentPage
-                                                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                                                        ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     {index + 1}
@@ -391,6 +405,14 @@ export default function Employee() {
                     </div>
                 </ModalWrapper>
 
+            )}
+
+            {updateEmployeeId && (
+                <UpdateEmployeeModal
+                    isOpen={isUpdateModalOpen}
+                    onClose={() => fetchEmployees()}
+                    employeeId={updateEmployeeId}
+                />
             )}
         </div>
     );
