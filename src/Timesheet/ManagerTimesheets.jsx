@@ -25,11 +25,11 @@ const ManagerTimesheets = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);  // Set the number of items per page
 
-  const managerId = "";
+  // const managerId = "";
   const employeeId = localStorage.getItem('employeeId');
 
   const fetchSubmissions = useCallback(async () => {
-    if (!managerId) return;
+    if (!employeeId) return;
 
     try {
       let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${employeeId}`;
@@ -51,15 +51,15 @@ const ManagerTimesheets = () => {
     } catch (error) {
       console.log("Error:", error);
     }
-  }, [managerId, startDate, endDate, employeeId]);
+  }, [startDate, endDate, employeeId]);
 
   useEffect(() => {
-    if (managerId) {
+    if (employeeId) {
       fetchSubmissions();
       const interval = setInterval(fetchSubmissions, 5000000);
       return () => clearInterval(interval);
     }
-  }, [fetchSubmissions, managerId]);
+  }, [fetchSubmissions, employeeId]);
 
   const handleFilter = (status) => {
     if (status === "ALL") {
