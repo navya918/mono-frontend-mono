@@ -25,7 +25,7 @@ const ManagerTimesheets = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);  // Set the number of items per page
 
-  const managerId = "MTL1015";
+  const managerId = "";
   const employeeId = localStorage.getItem('employeeId');
 
   const fetchSubmissions = useCallback(async () => {
