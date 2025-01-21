@@ -32,7 +32,7 @@ const ManagerTimesheets = () => {
     if (!managerId) return;
 
     try {
-      let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${managerId}`;
+      let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${employeeId}`;
         
       if (startDate && endDate) {
         url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
