@@ -16,7 +16,7 @@ const Contacts=()=>{
     useEffect(() => {
       setLoading(true);
         const fetchData = async () => {
-            const email=localStorage.getItem('email');
+
             const employeeId=localStorage.getItem("employeeId");
           try {
             const response = await axios.get(`https://krupa-contacts.azurewebsites.net/apis/employees/contacts/contactsBy/${employeeId}`);
