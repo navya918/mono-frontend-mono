@@ -5,6 +5,7 @@ import Loader from '../../Assets/Loader';
 const NewContacts = () => {
     const [formData, setFormData] = useState({
         contactCreatedEmployee: localStorage.getItem("email"),
+        employeeId:localStorage.getItem("employeeId"),
         personName: '',
         relation:'',
         countryCode:'',
