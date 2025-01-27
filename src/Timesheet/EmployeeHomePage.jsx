@@ -296,10 +296,10 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
                           <span
                             className={`px-2 inline-flex text-lg leading-5 font-semibold rounded-full ${
                               submission.status === "APPROVED"
-                                ? "bg-blue-100 text-blue-800"
+                                ? " text-green-500"
                                 : submission.status === "REJECTED"
-                                ? "bg-gray-100 text-gray-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                ? " text-red-600"
+                                : " text-blue-600"
                             }`}
                           >
                             {submission.status}
