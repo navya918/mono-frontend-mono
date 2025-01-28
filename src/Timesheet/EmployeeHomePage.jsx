@@ -321,7 +321,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
                                   setShowModal(true); // Show modal when delete is clicked
                                 }}
                               >
-                                <FaTrash />
+                                <FaTrash className="text-red-600"/>
                               </button>
                             </div>
                           )}

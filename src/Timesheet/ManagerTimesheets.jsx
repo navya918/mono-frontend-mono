@@ -312,13 +312,13 @@ const ManagerTimesheets = () => {
                             <>
                               <button
                                 onClick={() => handleApprove(submission.id)}
-                                className="text-blue-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
+                                className="text-green-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleShow(submission.id)}
-                                className="text-blue-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
+                                className="text-red-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
                               >
                                 Reject
                               </button>
