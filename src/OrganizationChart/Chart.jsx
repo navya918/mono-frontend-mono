@@ -24,7 +24,7 @@ export default function Chart() {
         const token = localStorage.getItem('token')
         console.log(token)
         const [originResponse] = await Promise.all([
-          axios.get(`https://talents-backend.azurewebsites.net/api/v1/employeeManager/origin/${employeeId}`,{
+          axios.get(`http://localhost:8085/api/v1/employeeManager/origin/${employeeId}`,{
             method:'GET',
             headers : {
               'Authorization' : `Bearer ${token}`,
@@ -50,7 +50,7 @@ export default function Chart() {
         const token = localStorage.getItem('token')
         console.log(token)
         const [ employeesResponse] = await Promise.all([
-          axios.get("https://talents-backend.azurewebsites.net/api/v1/employeeManager/employees",{
+          axios.get("http://localhost:8085/api/v1/employeeManager/employees",{
             method:'GET',
             headers : {
               'Authorization' : `Bearer ${token}`,
@@ -76,7 +76,7 @@ export default function Chart() {
         const token = localStorage.getItem('token')
         console.log(token)
         const [ reportingResponse] = await Promise.all([
-          axios.get(`https://talents-backend.azurewebsites.net/api/v1/employeeManager/reporting-to/${employeeId}`,{
+          axios.get(`http://localhost:8085/api/v1/employeeManager/reporting-to/${employeeId}`,{
             method:'GET',
             headers : {
               'Authorization' : `Bearer ${token}`,

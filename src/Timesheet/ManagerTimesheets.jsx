@@ -27,19 +27,25 @@ const ManagerTimesheets = () => {
 
   // const managerId = "";
   const employeeId = localStorage.getItem('employeeId');
+  const token=localStorage.getItem("token");
 
   const fetchSubmissions = useCallback(async () => {
     if (!employeeId) return;
 
     try {
-      let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/manager/${employeeId}`;
+      let url = `http://localhost:8085/api/timesheets/list/manager/${employeeId}`;
         
       if (startDate && endDate) {
-        url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
+        url = `http://localhost:8085/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
       }
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       const data = response.data.reverse();
+      console.log(data);
       setSubmissions(data);
       setFilteredSubmissions(data);
       setCounts({
@@ -51,7 +57,7 @@ const ManagerTimesheets = () => {
     } catch (error) {
       console.log("Error:", error);
     }
-  }, [startDate, endDate, employeeId]);
+  }, [startDate, endDate, employeeId, token]);
 
   useEffect(() => {
     if (employeeId) {
@@ -75,28 +81,41 @@ const ManagerTimesheets = () => {
 
   const handleApprove = async (id) => {
     setLoading(true);
+    console.log(token); // Make sure the token is valid here
     try {
-      await axios.put(`https://harhsa-backend.azurewebsites.net/api/timesheets/Approve/${id}/status/APPROVED`);
-      fetchSubmissions();
+      await axios.put(`http://localhost:8085/api/timesheets/Approve/${id}/status/APPROVED`, null, {
+        headers: {
+          "Authorization": `Bearer ${token}`,  // Ensure token is valid
+        },
+        withCredentials: true  // Ensure credentials (cookies) are sent
+      });
+      fetchSubmissions(); // Refresh the submissions after the approve request is successful
     } catch (error) {
       console.error("Error approving timesheet:", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleReject = async () => {
     setLoading(true);
     try {
-      await axios.put(`https://harhsa-backend.azurewebsites.net/api/timesheets/reject/${currentId}/status/REJECTED/comments/${comments}`);
-      fetchSubmissions();
-      handleClose();
+      await axios.put(`http://localhost:8085/api/timesheets/reject/${currentId}/status/REJECTED/comments/${comments}`, null, {
+        headers: {
+          "Authorization": `Bearer ${token}`,  // Ensure the token is valid
+        },
+        withCredentials: true  // Ensure credentials (cookies) are sent
+      });
+      fetchSubmissions(); // Refresh the submissions after rejecting the timesheet
+      handleClose(); // Close any modal or dialog if needed
     } catch (error) {
       console.error("Error rejecting timesheet:", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const downloadTimesheets = () => {
     const doc = new jsPDF();
@@ -312,13 +331,13 @@ const ManagerTimesheets = () => {
                             <>
                               <button
                                 onClick={() => handleApprove(submission.id)}
-                                className="text-green-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
+                                className="text-green-600 hover:text-green-600 text-xl border border-green-500 px-1 py-1 rounded-lg hover:bg-green-100"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleShow(submission.id)}
-                                className="text-red-600 hover:text-blue-900 text-xl border border-blue-500 px-1 py-1 rounded-lg hover:bg-blue-100"
+                                className="text-red-600 hover:text-red-600 text-xl border border-red-500 px-1 py-1 rounded-lg hover:bg-red-100"
                               >
                                 Reject
                               </button>

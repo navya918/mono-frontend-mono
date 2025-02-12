@@ -26,6 +26,7 @@ const NewContacts = () => {
     const[isAdding, setIsAdding]=useState(false);
     const [isError, setIsError]=useState(false);
     const [showPopup, setShowPopup] = useState(false);
+    const token=localStorage.getItem("token");
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -40,7 +41,11 @@ const NewContacts = () => {
         if(formData.personName!=="" && formData.personMobile!==""){
             setIsError(false);
             setIsAdding(true);
-        await axios.post("https://krupa-contacts.azurewebsites.net/apis/employees/contacts/contacts", formData);
+        await axios.post("http://localhost:8085/apis/employees/contacts/contacts", formData,{
+            headers: {
+              "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+            }
+          });
         setIsAdding(false);
         setShowPopup(true);
         }

@@ -9,6 +9,7 @@ const TimesheetSubmission = ({ setSubmissions }) => {
   const [isFormVisible, setIsFormVisible] = useState(true);
   const [errors, setErrors] = useState("");
   const { formData } = location.state || {};
+  const token=localStorage.getItem("token");
 
   // Function to handle timesheet submission
   const handleSubmitToHome = async () => {
@@ -18,7 +19,11 @@ const TimesheetSubmission = ({ setSubmissions }) => {
         SubmissionDate: new Date().toISOString(),
       };
 
-      const response = await axios.post("https://harhsa-backend.azurewebsites.net/api/timesheets", newFormData);
+      const response = await axios.post("http://localhost:8085/api/timesheets", newFormData, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       console.log(response.data);
 
       // Add the new submission to the list of submissions

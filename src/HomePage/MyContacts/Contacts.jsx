@@ -10,6 +10,7 @@ const Contacts=()=>{
     const [contacts, setContacts]=useState([]);
     const [isLoading, setLoading]=useState(false);
     const [searchValue, setSearchValue]=useState("");
+    const token=localStorage.getItem('token');
 
 
 
@@ -19,7 +20,11 @@ const Contacts=()=>{
 
             const employeeId=localStorage.getItem("employeeId");
           try {
-            const response = await axios.get(`https://krupa-contacts.azurewebsites.net/apis/employees/contacts/contactsBy/${employeeId}`);
+            const response = await axios.get(`http://localhost:8085/apis/employees/contacts/contactsBy/${employeeId}`,{
+              headers: {
+                "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+              }
+            });
             console.log(response.data);
             setContacts(response.data);
             setLoading(false);
@@ -30,7 +35,7 @@ const Contacts=()=>{
         };
 
         fetchData();
-      }, []);
+      }, [token]);
 
 
       const contactsTable=()=>{

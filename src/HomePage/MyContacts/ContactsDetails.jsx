@@ -28,6 +28,7 @@ const ContactsDetails = () => {
     const [isLoading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const isDisable = true;
+    const token=localStorage.getItem("token");
 
     let { contactId } = useParams();
 
@@ -38,7 +39,11 @@ const ContactsDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(`https://krupa-contacts.azurewebsites.net/apis/employees/contacts/contacts/${contactId}`);
+                const response = await axios.get(`http://localhost:8085/apis/employees/contacts/contacts/${contactId}`,{
+                    headers: {
+                      "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+                    }
+                  });
                 console.log(response.data);
                 setFormData(response.data);
                 setLoading(true);
@@ -47,7 +52,7 @@ const ContactsDetails = () => {
             }
         };
         fetchData();
-    }, [contactId]);
+    }, [contactId, token]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -58,7 +63,11 @@ const ContactsDetails = () => {
     };
 
     const deleteContact = async () => {
-        await axios.delete(`https://krupa-contacts.azurewebsites.net/apis/employees/contacts/contacts/${contactId}`);
+        await axios.delete(`http://localhost:8085/apis/employees/contacts/contacts/${contactId}`,{
+            headers: {
+              "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+            }
+          });
         navigate('/Contacts');
     }
 

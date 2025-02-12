@@ -14,6 +14,7 @@ export default function AddTask(props) {
   const [isError, setIsError] = useState(false);
   const personId=personToAddTask[0].employeeId;
   console.log(personId);
+  const token=localStorage.getItem('token');
 
   const taskCreated = async (event) => {
     event.preventDefault();
@@ -31,9 +32,9 @@ export default function AddTask(props) {
     if (taskName !== "" && taskDetails !== "") {
       setIsLoading(true);
       try {
-        await axios.post("https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks", {
+        axios.post("http://localhost:8085/apis/employees/tasks", {
           taskAssignedById: localStorage.getItem("employeeId"),
-          taskAssignedByName:localStorage.getItem('firstName')+" "+localStorage.getItem('lastName'),
+          taskAssignedByName: localStorage.getItem('firstName') + " " + localStorage.getItem('lastName'),
           taskAssignedByEmail: localStorage.getItem('email'),
           personId,
           personName,
@@ -43,6 +44,16 @@ export default function AddTask(props) {
           effectiveDate,
           dueDate,
           taskStatus: false,
+        }, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        })
+        .then(response => {
+          console.log('Task assigned successfully:', response.data);
+        })
+        .catch(error => {
+          console.error('Error assigning task:', error);
         });
         setIsError(false);
         console.log(taskDetailsd);

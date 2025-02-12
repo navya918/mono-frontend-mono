@@ -15,6 +15,7 @@ export default function UpdateTasks(props) {
     const [dueDate, setDueDate]=useState(taskData.dueDate)
     const [isChecked, setIsChecked]=useState(taskData.taskStatus)
     const [isError, setIsError]=useState(false);
+    const token=localStorage.getItem("token");
 
     const handleCheckBoxChange=(event)=>{
       setIsChecked(!isChecked)
@@ -27,7 +28,7 @@ export default function UpdateTasks(props) {
 
       if(taskName!=="" && taskDetails!==""){
         setIsError(false)
-        await axios.put(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${taskId}`, {
+        await axios.put(`http://localhost:8085/apis/employees/tasks/${taskId}`, {
         taskId:taskId,
         taskAssignedBy:localStorage.getItem('email'),
         personName:personName,
@@ -37,6 +38,10 @@ export default function UpdateTasks(props) {
         effectiveDate:effectiveDate,
         dueDate:dueDate,
         taskStatus:isChecked
+      },{
+        headers: {
+          "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+        }
       })
         setLoading(false);
       taskUpdate()

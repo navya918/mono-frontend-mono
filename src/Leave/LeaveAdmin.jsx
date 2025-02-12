@@ -3,12 +3,14 @@ import { FaHourglassHalf, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { MdOutlineFileDownload } from 'react-icons/md';
 import axios from 'axios';  // Use import instead of require
 import Pagination, { getPaginationData } from './Pagination';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import Loader from "../Assets/Loader";
+import Empty from '../Assets/Empty.svg';
  
  
-export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
+ 
+export default function LeaveApprovalDashboard() {
   const [Data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [count, setCount] = useState(0);
   const [statusCount, setStatusCount] = useState({pending: 0, approved: 0, rejected: 0,});
@@ -17,13 +19,15 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
   const [showModal, setShowModal] = useState(false);
   const [selectedLeaveId, setSelectedLeaveId] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
    const [filteredRequests, setFilteredRequests] = useState([]);
-    const [startDate, setStartDate] = useState(null); // Start date for filtering
-    const [endDate, setEndDate] = useState(null); // End date for filtering
+    const [startDate, setStartDate] = useState(""); // Start date for filtering
+    const [endDate, setEndDate] = useState(""); // End date for filtering
    
   // pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [employeesPerPage] = useState(8);
+  const [employeesPerPage] = useState(5);
+  const managerId=localStorage.getItem("employeeId");
  
   // open modal and set selected leave ID
   const openRejectModal = (id) => {
@@ -40,8 +44,16 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
  
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get(`https://naveen-module.azurewebsites.net/api/leave/manager/${managerId}`);
+        const token = localStorage.getItem('token')
+        const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
+          method:'GET',
+          headers:{
+            'Authorization' : `Bearer ${token}`,
+            'Content-Type' : 'application/json'
+          },
+        });
         const leaves = response.data;
         // Sort leaves with new entries at the top
         setData(leaves.sort((a, b) => (b.createdAt || b.id) - (a.createdAt || a.id))); // Assuming 'createdAt' is available
@@ -57,34 +69,56 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
       } catch (error) {
         console.error("Error fetching leave requests:", error);
       }
+      finally{
+        setLoading(false);
+      }
     };
     fetchData();
   }, [managerId]);
  
   const handleApprove = async (id) => {
+    setLoading(true);
     try {
-      await axios.put(`https://naveen-module.azurewebsites.net/api/leave/approve/${id}`);
-      const response = await axios.get(`https://naveen-module.azurewebsites.net/api/leave/manager/${managerId}`);
+      const token = localStorage.getItem('token')
+      await axios.put(`http://localhost:8085/apis/employees/approve/${id}`, {
+        method:'GET',
+        headers:{
+          'Authorization' : `Bearer ${token}`,
+          'Content-Type' : 'application/json'
+        },
+      });
+      const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
+        method:'GET',
+        headers:{
+          'Authorization' : `Bearer ${token}`,
+          'Content-Type' : 'application/json'
+        },
+      });
  
-    // Update the status count directly
-    setStatusCount((prevStatusCount) => ({
-      ...prevStatusCount,
-      approved: prevStatusCount.approved + 1,
-      pending: Math.max(0, prevStatusCount.pending - 1), // Ensure pending does not go negative
-    }));
+   
       const leaves = response.data;
       // Sort leaves with new entries at the top
       setData(leaves.sort((a, b) => (b.createdAt || b.id) - (a.createdAt || a.id)));
       setFilteredData(leaves.sort((a, b) => (b.createdAt || b.id) - (a.createdAt || a.id)));
       setFilteredRequests(leaves);
       setIsEditing({ ...isEditing, [id]: false }); //exit edit mode after approval
+       // Update the status count directly
+    setStatusCount((prevStatusCount) => ({
+      ...prevStatusCount,
+      approved: prevStatusCount.approved + 1,
+      pending: Math.max(0, prevStatusCount.pending - 1), // Ensure pending does not go negative
+    }));
     } catch (error) {
       console.error("Error approving leave request:", error);
+    }
+    finally{
+      setLoading(false);
     }
   };
  
   // Handle rejection with backend integration
   const handleReject = async () => {
+    setLoading(true);
     if (!rejectionReason) {
       alert("Please provide a rejection reason.");
       return;
@@ -94,14 +128,22 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
       console.log(rejectionReason);
       // Encode the rejectionReason to ensure proper handling of special characters
     //const encodedReason = encodeURIComponent(rejectionReason);
-      await axios.put(`https://naveen-module.azurewebsites.net/api/leave/reject/${selectedLeaveId}/${rejectionReason}`);
-      const response = await axios.get(`https://naveen-module.azurewebsites.net/api/leave/manager/${managerId}`);
-      // Update the status count directly
-    setStatusCount((prevStatusCount) => ({
-      ...prevStatusCount,
-      rejected: prevStatusCount.rejected + 1,
-      pending: Math.max(0, prevStatusCount.pending - 1), // Ensure pending does not go negative
-    }));
+    const token = localStorage.getItem('token')
+      await axios.put(`http://localhost:8085/apis/employees/reject/${selectedLeaveId}/${rejectionReason}`, {
+        method:'GET',
+        headers:{
+          'Authorization' : `Bearer ${token}`,
+          'Content-Type' : 'application/json'
+        },
+      });
+      const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
+        method:'GET',
+        headers:{
+          'Authorization' : `Bearer ${token}`,
+          'Content-Type' : 'application/json'
+        },
+      });
+     
  
       const leaves = response.data;
       // Sort leaves with new entries at the top
@@ -110,6 +152,12 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
       setFilteredRequests(leaves);
       setRejectionReason(response.data)
       setIsEditing({ ...isEditing, [selectedLeaveId]: false }); // exit edit mode after rejection
+       // Update the status count directly
+    setStatusCount((prevStatusCount) => ({
+      ...prevStatusCount,
+      rejected: prevStatusCount.rejected + 1,
+      pending: Math.max(0, prevStatusCount.pending - 1), // Ensure pending does not go negative
+    }));
  
       // Optionally refresh data here (for instance, refetch the leave data)
       // Close modal after rejection
@@ -117,17 +165,25 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
     } catch (error) {
       console.error("Error rejecting leave request:", error);
     }
+    finally{
+      setLoading(false);
+    }
   };
  
-  const filterByStatus = (status) => {
-    if (status === 'ALL') {
-      setFilteredData(Data);
-    } else {
-      const filtered = Data.filter(leave => leave.leaveStatus === status);
-      setFilteredData(filtered);
-    }
-    setCurrentPage(1); // Reset to first page on filter change
-  };
+  // const filterByStatus = (status) => {
+  //   console.log("data: " , Data)
+  //    if (!Array.isArray(Data)) {
+  //   console.error("Error: Data is not an array!", Data);
+  //   return;
+  // }
+  //   if (status === 'ALL') {
+  //     setFilteredData(Data);
+  //   } else {
+  //     const filtered = Data.filter(leave => leave.leaveStatus === status);
+  //     setFilteredData(filtered);
+  //   }
+  //   setCurrentPage(1); // Reset to first page on filter change
+  // };
  
   const toggleEdit = (id) => {
     // Toggle the editing state for the specific leave request ID
@@ -137,17 +193,105 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
     }));
   };
  
+  // Handle changes in date inputs
+  const handleStartDateChange = (e) => {
+    const value = e.target.value;
+    console.log("Selected Start Date: ", value);
+    setStartDate(value);
+};
+ 
+const handleEndDateChange = (e) => {
+    const value = e.target.value;
+    console.log("Selected End Date: ", value);
+    setEndDate(value);
+};
+ 
+const handleSubmit = (e) => {
+    e.preventDefault();
+    if (startDate && endDate) {
+      console.log("Filtering with Leave Start Date:", startDate);
+      console.log("Filtering with Leave End Date:", endDate);
+  } else {
+      console.log("Please select both leave start and end dates.");
+  }
+ 
+};
+ 
+  const applyFilters = () => {
+    console.log("Leave Requests Data:", Data);
+ 
+    let filtered = [...Data] // always start from original data
+ 
+    console.log("Filtering with Start Date:", startDate);
+    console.log("Filtering with End Date:", endDate);
+ 
+    // Apply status filters
+    if(selectedStatus !== 'ALL'){
+      filtered = filtered.filter(request => request.leaveStatus === selectedStatus)
+    }
+ 
+   
+    console.log("Data Dates:", filteredData.leaveStartDate, filtered.leaveEndDate);
+ 
+  //   if (startDate) {
+  //     filtered = filtered.filter(request => new Date(request.leaveStartDate) >= startDate);
+  // }
+ 
+  // if (endDate) {
+  //     filtered = filtered.filter(request => new Date(request.leaveEndDate) <= endDate);
+  // }
+ 
+  //   setFilteredRequests(filtered.length > 0 ? filtered : []); // Always ensure its an array
+ 
+  // // If no start date or end date is selected, show all leave requests
+  // if (!startDate && !endDate) {
+  //   setFilteredRequests(Data); // Show all requests
+  //   return;
+  // }
+   
+    // If a start date is selected, filter the leave requests that are >= start date
+    if (startDate) {
+      filtered = filtered.filter(request => new Date(request.leaveStartDate) >= new Date(startDate));
+      setStartDate("");
+    }
+   
+    // If an end date is selected, filter the leave requests that are <= end date
+    if (endDate) {
+      filtered = filtered.filter(request => new Date(request.leaveEndDate) <= new Date(endDate));
+      setEndDate("")
+    }
+ 
+    setFilteredRequests(filtered);
+   
+   
+  }
+ 
+  // call applyFilters() whenever filter is changed
+  const filterByStatus = (status) => {
+    setSelectedStatus(status);
+    applyFilters();
+  }
+ 
+  const filterByDateRange = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    applyFilters();
+   
+   
+  }
+ 
   // Get paginate data
-  const {totalPages, currentItems} = getPaginationData(filteredRequests,currentPage, employeesPerPage);
+  const {totalPages, currentItems} = getPaginationData(filteredRequests ?? [],currentPage, employeesPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
  
-  const headers = ["Employee", "Employee ID", "Start Date", "End Date", "Days", "Status", "Action"];
+  const headers = ["Employee", "Employee ID", "Start Date", "End Date","Leave Type", "Days", "Status", "Action"];
   const renderRowData = (data) => {
     const rowData = [
       { key: "firstName", value: data.firstName },
       { key: "employeeId", value: data.employeeId },
       { key: "leaveStartDate", value: data.leaveStartDate },
       { key: "leaveEndDate", value: data.leaveEndDate },
+      {key: "leaveType", value: data.leaveType},
       { key: "duration", value: data.duration },
     ];
  
@@ -158,27 +302,27 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
     ));
   };
  
-   // Filter the leave requests based on the selected start and end dates
-   const filterByDateRange = () => {
-    let filtered = [...Data];
-    // If no start date or end date is selected, show all leave requests
-  if (!startDate && !endDate) {
-    setFilteredRequests(Data); // Show all requests
-    return;
-  }
+  //  // Filter the leave requests based on the selected start and end dates
+  //  const filterByDateRange = () => {
+  //   let filtered = [...Data];
+  //   // If no start date or end date is selected, show all leave requests
+  // if (!startDate && !endDate) {
+  //   setFilteredRequests(Data); // Show all requests
+  //   return;
+  // }
    
-    // If a start date is selected, filter the leave requests that are >= start date
-    if (startDate) {
-      filtered = filtered.filter(request => new Date(request.leaveStartDate) >= new Date(startDate));
-    }
+  //   // If a start date is selected, filter the leave requests that are >= start date
+  //   if (startDate) {
+  //     filtered = filtered.filter(request => new Date(request.leaveStartDate) >= new Date(startDate));
+  //   }
    
-    // If an end date is selected, filter the leave requests that are <= end date
-    if (endDate) {
-      filtered = filtered.filter(request => new Date(request.leaveEndDate) <= new Date(endDate));
-    }
+  //   // If an end date is selected, filter the leave requests that are <= end date
+  //   if (endDate) {
+  //     filtered = filtered.filter(request => new Date(request.leaveEndDate) <= new Date(endDate));
+  //   }
  
-    setFilteredRequests(filtered);
-  };
+  //   setFilteredRequests(filtered);
+  // };
  
   const getStatusClass = (status) => {
     switch (status) {
@@ -214,7 +358,7 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
         return (
           <div className="flex items-center space-x-2">
             <button
-              className="bg-red-500 text-white text-lg px-3 py-2 rounded"
+              className="text-red-500 hover:text-red-500 border border-red-400 px-3 py-2 whitespace-nowrap text-lg font-medium rounded"
               onClick={() => openRejectModal(data.id)} // Open the rejection modal
             >
               Reject
@@ -236,7 +380,7 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
         return (
           <div className="flex items-center space-x-2">
             <button
-              className="bg-green-500 text-white text-lg px-3 py-2 rounded"
+              className="text-green-600 hover:text-green-500 border border-green-800 px-3 py-2 whitespace-nowrap text-lg font-medium rounded"
               onClick={() => handleApprove(data.id)} // Approve the request
             >
               Approve
@@ -259,13 +403,13 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
       return (
         <div className="flex items-center space-x-2">
           <button
-            className="bg-green-500 text-white text-lg px-3 py-2 rounded"
+            className="text-green-500 hover:text-green-500 border border-green-400 px-3 py-2 whitespace-nowrap text-lg font-medium rounded"
             onClick={() => handleApprove(data.id)} // Approve the request
           >
             Approve
           </button>
           <button
-            className="bg-red-500 text-white text-lg px-3 py-2 rounded"
+            className="text-red-500 hover:text-red-500 border border-red-400 px-3 py-2 whitespace-nowrap text-lg font-medium rounded"
             onClick={() => openRejectModal(data.id)} // Open the rejection modal
           >
             Reject
@@ -286,7 +430,7 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
     return (
       <div className="flex items-center space-x-2">
         <button
-          className="bg-blue-500 text-white text-lg px-3 py-2 rounded"
+          className="text-blue-500 hover:text-blue-900 border border-blue-500 px-3 py-2 whitespace-nowrap text-lg font-medium rounded"
           onClick={() => toggleEdit(data.id)} // Toggle edit mode
         >
           Edit
@@ -307,38 +451,42 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
   return (
     <div>
       <div className='flex items-center justify-between mb-4'>
-        <h1 className="text-2xl font-bold text-center ml-4">RECEIVED LEAVE REQUESTS</h1>
+        <h1 className="text-2xl font-extrabold text-center ml-4">RECEIVED LEAVE REQUESTS</h1>
         <div className="flex items-center space-x-4">
                    
                     {/* Calendar for selecting start and end dates */}
-                    <div className="flex items-center space-x-2 custom-datepicker-popup">
-                      <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        placeholderText="Select start date"
+                    <div>
+            <form onSubmit={handleSubmit}>
+                <div className="flex items-center space-x-2">
+                    <input
+                        type="date"
+                        value={filteredData.leaveStartDate}  // Convert to yyyy-MM-dd
+                         onChange={handleStartDateChange}
+                        placeholder="Select start date"
                         className="p-3 border rounded-md text-md"
-                        dateFormat="yyyy/MM/dd"
-                        // popperClassName="custom-datepicker-popup"
-                      />
-                      <span>to</span>
-                      <DatePicker
-                        selected={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        placeholderText="Select end date"
+                    />
+                    <span>to</span>
+                    <input
+                        type="date"
+                       value={filteredData.leaveEndDate}  // Convert to yyyy-MM-dd
+                       onChange={handleEndDateChange}
+                        placeholder="Select end date"
                         className="p-3 border rounded-md"
-                        dateFormat="yyyy/MM/dd"
-                        // popperClassName="custom-datepicker-popup"
-                      />
-                    </div>
-                   
-                    {/* Filter and Show All buttons */}
-                    <div className="flex space-x-2">
-                      <button
+                    />
+                    <button
                         onClick={filterByDateRange}
                         className="ml-2 px-4 py-2 bg-blue-600 text-white text-lg rounded"
                       >
                         Filter
                       </button>
+                </div>
+               
+            </form>
+        </div>
+                   
+                    {/* Filter and Show All buttons */}
+                    <div className="flex space-x-2">
+                     
                       <button
                         onClick={() => {
                           setStartDate(null);
@@ -355,29 +503,26 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
                   </div>
      
       {/* Status Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-300 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
         <div className="text-center text-sm font-bold p-2">
-          <button className="bg-gray-500 text-white rounded-lg text-lg px-4 py-2" onClick={() => filterByStatus('ALL')}>Total Requests</button>
+          <button className="bg-blue-100 hover:bg-blue-200 text-gray-700 p-4 rounded-lg text-xl shadow-md cursor-pointer transition duration-300 ease-in-out" onClick={() => filterByStatus('ALL')}>Total Requests : {count}</button>
         </div>
         <div className="text-center text-sm font-bold p-2">
-          <button className="bg-yellow-500 text-white rounded-lg text-lg px-4 py-2" onClick={() => filterByStatus('PENDING')}>Pending</button>
+          <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-4 rounded-lg text-xl shadow-md cursor-pointer transition duration-300 ease-in-out" onClick={() => filterByStatus('PENDING')}>Pending : {statusCount.pending}</button>
         </div>
         <div className="text-center text-sm font-bold p-2">
-          <button className="bg-blue-500 text-white rounded-lg text-lg px-4 py-2" onClick={() => filterByStatus('APPROVED')}>Approved</button>
+          <button className="bg-gray-200 hover:bg-gray-300 text-gray-700 p-4 rounded-lg text-xl shadow-md cursor-pointer transition duration-300 ease-in-out" onClick={() => filterByStatus('APPROVED')}>Approved : {statusCount.approved}</button>
         </div>
         <div className="text-center text-sm font-bold p-2">
-          <button className="bg-red-500 text-white rounded-lg text-lg px-4 py-2" onClick={() => filterByStatus('REJECTED')}>Rejected</button>
+          <button className="bg-gray-300 hover:bg-gray-400 text-gray-700 p-4 rounded-lg text-xl shadow-md cursor-pointer transition duration-300 ease-in-out" onClick={() => filterByStatus('REJECTED')}>Rejected : {statusCount.rejected}</button>
         </div>
-        <div className='text-center text-lg'>{count}</div>
-        <div className='text-center text-lg'>{statusCount.pending}</div>
-        <div className='text-center text-lg'>{statusCount.approved}</div>
-        <div className='text-center text-lg'>{statusCount.rejected}</div>
       </div>
  
       {/* Leave Requests Table */}
-      <div className="overflow-x-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-7 bg-gray-100">
-          <div className="col-span-7 text-center text-md font-bold p-2 bg-gray-200">LEAVE REQUESTS</div>
+      {loading ? <Loader/>: filteredData.length===0 ? <img className='mt-40 ml-auto mr-auto h-80 self-center ' src={Empty} alt="No Data FOund"/> :
+      (<div className="overflow-x-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-8 bg-gray-100">
+          <div className="col-span-8 text-center text-md font-bold p-2 bg-gray-200">LEAVE REQUESTS</div>
  
           {/* Table Header */}
           {headers.map((header) => (
@@ -391,7 +536,7 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
 {filteredData && currentItems.map((data) => (
   <div
     key={data.id}
-    className="grid grid-cols-1 sm:grid-cols-7 text-center p-2 border-b border-gray-200 items-center bg-gray-100"
+    className="grid grid-cols-1 sm:grid-cols-8 text-center p-2 border-b border-gray-200 items-center bg-gray-100"
   >
     {/* Render Row Data */}
     {renderRowData(data)}
@@ -410,10 +555,9 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
     <div className="p-2 flex justify-center space-x-2">
       {renderActions(data)}
     </div>
-   
-  </div>
+    </div>
 ))}
-   </div>
+ 
  
      {/* Pagination controls */}
      <Pagination
@@ -422,6 +566,11 @@ export default function LeaveApprovalDashboard({managerId = 'MTL1008'}) {
         paginate={paginate}
        
       />
+ 
+ 
+   </div>
+      )
+    }
      
       {/* Rejection Reason Modal */}
       {showModal && (
@@ -471,7 +620,3 @@ function AttachmentItem({ filename, icon, fileUrl }) {
               </button>
   );
 }
- 
- 
- 
- 

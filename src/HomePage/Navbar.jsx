@@ -51,7 +51,7 @@ export default function Navbar() {
         { name: 'Tasks', href: '/tasks' },
         { name: 'Contacts', href: '/contacts' },
         { name: 'Organization Chart', href: '/OrgChart' },
-        { name: 'Timesheet', href: '/EmployeeHomePage' },
+        { name: 'Timesheet', href: '/TimesheetManage' },
         { name: 'Leave Management', href: '/LeaveManagement' },
         { name: 'Badges', href: '/badges' }
     ];

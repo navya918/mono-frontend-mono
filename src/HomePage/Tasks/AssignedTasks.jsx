@@ -26,6 +26,7 @@ const AssignedTasks = (props) => {
   const [currentPage, setCurrentPage] = useState(1);  // Current page
   const [itemsPerPage] = useState(5);  // Items per page (can be adjusted)
   const employeeId=localStorage.getItem("employeeId");
+  const token=localStorage.getItem("token");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,31 +34,39 @@ const AssignedTasks = (props) => {
       let url;
 
       if (taskType === "allTasks") {
-        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
+        url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
       }
       else if(taskType==="pendingTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(taskType==="completedTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
 
       try {
-        const response = await axios.get(url);
-        setData(response.data);
-        setLoading(false);
+          // Retrieve the token from localStorage
+        
+        const response = await axios.get(url, {
+          headers: {
+            "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+          }
+        });
+        console.log(response.data);
+        setData(response.data);  // Handle the response data
+        setLoading(false);  // Stop the loading state
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
+        console.error('Error fetching data:', error);  // Log any error that occurs
+        setLoading(false);  // Stop the loading state
       }
+      
     };
 
     fetchData();
-  }, [taskType, employeeId]);  // Rerun the effect when taskType changes
+  }, [taskType, employeeId, token]);  // Rerun the effect when taskType changes
 
   const isLoggedIn = localStorage.getItem('email');
   if (isLoggedIn === null) {
@@ -77,7 +86,11 @@ const AssignedTasks = (props) => {
   const confirmDelete = async () => {
     setLoading(true);
     const id = deleteId;
-    await axios.delete(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${id}`);
+    await axios.delete(`http://localhost:8085/apis/employees/tasks/${id}`,{
+      headers: {
+        "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+      }
+    });
 
     // Refresh data after deletion
     const fetchData = async () => {
@@ -85,13 +98,17 @@ const AssignedTasks = (props) => {
       let url;
 
       if (taskType === "allTasks") {
-        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
+        url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
       }
 
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(url,{
+          headers: {
+            "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+          }
+        });
         setData(response.data);
         setLoading(false);
         setIsDelete(false);
@@ -107,7 +124,11 @@ const AssignedTasks = (props) => {
     setLoading(true);
     if (!isOpen) {
       try {
-        const response = await axios.get(`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasks/${taskId}`);
+        const response = await axios.get(`http://localhost:8085/apis/employees/tasks/${taskId}`,{
+          headers: {
+            "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+          }
+        });
         setTaskData(response.data);
         setLoading(false);
       } catch (error) {
@@ -121,13 +142,18 @@ const AssignedTasks = (props) => {
         let url;
 
         if (taskType === "allTasks") {
-          url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
+          url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
         } else if (taskType === "overdueTasks") {
-          url = `https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+          url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         }
 
         try {
-          const response = await axios.get(url);
+          const response = await axios.get(url,{
+            headers: {
+              "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+            }
+          }
+          );
           setData(response.data);
           setLoading(false);
           setIsDelete(false);
@@ -161,19 +187,19 @@ const AssignedTasks = (props) => {
 
         let url;
       if(event.target.value==="allTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/tasksAssignedBy/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
         console.log(1);
       }
       else if(event.target.value==="overdueTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="pendingTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="completedTasks"){
-        url=`https://krupa-newtaskmodule-backend.azurewebsites.net/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
+        url=`http://localhost:8085/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       console.log(taskType);
@@ -181,7 +207,11 @@ const AssignedTasks = (props) => {
 
 
       try {
-        const response = await axios.get(url);
+        const response = await axios.get(url,{
+          headers: {
+            "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
+          }
+        });
         setData(response.data);
         setLoading(false)
       } catch (error) {

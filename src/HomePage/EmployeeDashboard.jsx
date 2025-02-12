@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import PerformanceMatrix from './EmployeeDashboard/PerformanceMatrix'
 import { motion } from "framer-motion"
 import {
-  ChartBarIcon,
   NewspaperIcon,
   ClockIcon,
   CalendarIcon,
@@ -94,30 +94,9 @@ useEffect(()=>{
 
         {/* Performance Metrics */}
         <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Performance Metrics</h2>
-            <ChartBarIcon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </div>
-          <div className="space-y-4">
-            <div>
-              <div className="mb-1 flex justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Productivity</span>
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">85%</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div className="h-full w-[85%] rounded-full bg-blue-600" />
-              </div>
-            </div>
-            <div>
-              <div className="mb-1 flex justify-between">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Goal Completion</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">92%</span>
-              </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-                <div className="h-full w-[92%] rounded-full bg-green-600" />
-              </div>
-            </div>
-          </div>
+          
+            <PerformanceMatrix/>
+          
         </div>
 
         {/* Company News */}

@@ -23,19 +23,25 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
   const [isDownloadEnabled, setIsDownloadEnabled] = useState(false);
   const [showModal, setShowModal] = useState(false); 
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null); 
+  const token=localStorage.getItem("token");
 
   useEffect(() => {
     const employeeId = localStorage.getItem("employeeId");
+    const token=localStorage.getItem("token");
 
     const fetchSubmissions = async () => {
       try {
-        let url = `https://harhsa-backend.azurewebsites.net/api/timesheets/list/${employeeId}`;
+        let url = `http://localhost:8085/api/timesheets/list/${employeeId}`;
 
         if (startDate && endDate) {
-          url = `https://harhsa-backend.azurewebsites.net/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
+          url = `http://localhost:8085/api/timesheets/totalList/employeeId/${employeeId}/startDate/${startDate}/endDate/${endDate}`;
         }
 
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
         const data = response.data.reverse();
         setSubmissions(data);
         setFilteredSubmissions(data);
@@ -59,7 +65,11 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
 
   const handleDeleteTimesheet = async () => {
     try {
-      await axios.delete(`https://harhsa-backend.azurewebsites.net/api/timesheets/delete/${selectedSubmissionId}`);
+      await axios.delete(`http://localhost:8085/api/timesheets/delete/${selectedSubmissionId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       const updatedSubmissions = filteredSubmissions.filter(
         (sub) => sub.id !== selectedSubmissionId
       );
@@ -151,7 +161,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
     // Table data
     const tableData = [
       ["Project", submission.projectName],
-      ["Date Range", `${submission.startDate} - ${submission.endDate}`],
+      ["Date Range", `${submission.startDate}-${submission.endDate}`],
       ["Total Hours", submission.totalNumberOfHours],
       ["Status", submission.status],
     ];
@@ -288,6 +298,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentSubmissions.map((submission) => (
                       <tr key={submission.id} className="hover:bg-gray-50">
+                        
                         <td className="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900">{submission.startDate} - {submission.endDate}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{submission.clientName}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{submission.projectName}</td>
