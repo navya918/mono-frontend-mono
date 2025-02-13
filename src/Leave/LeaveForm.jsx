@@ -35,6 +35,8 @@ function LeaveRequestForm(props) {
     const [year] = useState(new Date().getFullYear()); // Current year
     const [showLop,setShowLop]=useState(false);
     const nationalHolidays = getNationalHolidays(year); // Get holidays for the current year
+    
+
  
  
  
@@ -434,7 +436,7 @@ requiredFields.forEach(field => {
                     // const remain = remainingDays - formData.duration;
                     setRemainingLeaveDays(remainingDays -  currentDuration); // Set the remaining leave days in state
                 } else {
-                    setRemainingLeaveDays('You don\'t have enough remaining leave days.');
+                    setRemainingLeaveDays("You don't have enough remaining leave days.");
                     setErrors(true);
                 }
             } else {
@@ -667,7 +669,7 @@ requiredFields.forEach(field => {
  
                 {leaveError && <span className="text-red-600 text-sm">{leaveError}</span>}
                 </div>
-                {remainingLeaveDays==="You don\'t have enough remaining leave days." && <div>
+                {remainingLeaveDays==="You don't have enough remaining leave days." && <div>
                     <input type="checkbox" onChange={handleChange} name="LOP"/>
                 <label>LOP</label>
                     </div>}
