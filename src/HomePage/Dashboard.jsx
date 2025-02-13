@@ -1,36 +1,35 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import EmployeeDashboard from './EmployeeDashboard';
-import EmployeeAdminDashboard from './AdminDashboard';
 
 const Dashboard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
         // Check if both email and role are present
-        const email=localStorage.getItem('email');
+        // const email=localStorage.getItem('email');
         
-        console.log(email);
+        // // console.log(email);
         
-        
-
-        console.log("-------------------------------------------------------");
-        const role=localStorage.getItem('role');
-        console.log("2 "+role);
-
-        console.log("-------------------------------------------------------");
-        console.log("3");
         
 
-        console.log(localStorage.getItem('email') && localStorage.getItem('role'));
-        console.log("-------------------------------------------------------");
+        // // console.log("-------------------------------------------------------");
+        // const role=localStorage.getItem('role');
+        // console.log("2 "+role);
+
+        // console.log("-------------------------------------------------------");
+        // console.log("3");
+        
+
+        // console.log(localStorage.getItem('email') && localStorage.getItem('role'));
+        // console.log("-------------------------------------------------------");
         
         
         const isLoggedIn = localStorage.getItem('email') && localStorage.getItem('role')&&localStorage.getItem('token') ;
 
-        console.log("4 "+isLoggedIn);
+        // console.log("4 "+isLoggedIn);
 
-        console.log("-------------------------------------------------------");
+        // console.log("-------------------------------------------------------");
 
         
 
@@ -46,7 +45,7 @@ const Dashboard = () => {
 
     return (
         <div>
-            {localStorage.getItem("role")==="employee"?<EmployeeDashboard/>:<EmployeeAdminDashboard/>}
+            <EmployeeDashboard/>
         </div>
     );
 };

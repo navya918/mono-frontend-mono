@@ -9,7 +9,7 @@ import Empty from '../Assets/Empty.svg';
  
  
 export default function LeaveApprovalDashboard() {
-  const [Data, setData] = useState(null);
+  const [Data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
   const [count, setCount] = useState(0);
@@ -47,7 +47,7 @@ export default function LeaveApprovalDashboard() {
       setLoading(true);
       try {
         const token = localStorage.getItem('token')
-        const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
+        const response = await axios.get(`http://localhost:8085/api/leaves/manager/${managerId}`, {
           method:'GET',
           headers:{
             'Authorization' : `Bearer ${token}`,
@@ -80,15 +80,15 @@ export default function LeaveApprovalDashboard() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token')
-      await axios.put(`http://localhost:8085/apis/employees/approve/${id}`, {
-        method:'GET',
+      await axios.put(`http://localhost:8085/api/leaves/approve/${id}`, null,  {
+       
         headers:{
           'Authorization' : `Bearer ${token}`,
           'Content-Type' : 'application/json'
         },
       });
-      const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
-        method:'GET',
+      const response = await axios.get(`http://localhost:8085/api/leaves/manager/${managerId}`, {
+       
         headers:{
           'Authorization' : `Bearer ${token}`,
           'Content-Type' : 'application/json'
@@ -129,15 +129,15 @@ export default function LeaveApprovalDashboard() {
       // Encode the rejectionReason to ensure proper handling of special characters
     //const encodedReason = encodeURIComponent(rejectionReason);
     const token = localStorage.getItem('token')
-      await axios.put(`http://localhost:8085/apis/employees/reject/${selectedLeaveId}/${rejectionReason}`, {
-        method:'GET',
+      await axios.put(`http://localhost:8085/api/leaves/reject/${selectedLeaveId}/${rejectionReason}`, null,  {
+       
         headers:{
           'Authorization' : `Bearer ${token}`,
           'Content-Type' : 'application/json'
         },
       });
-      const response = await axios.get(`http://localhost:8085/apis/employees/manager/${managerId}`, {
-        method:'GET',
+      const response = await axios.get(`http://localhost:8085/api/leaves/manager/${managerId}`, {
+       
         headers:{
           'Authorization' : `Bearer ${token}`,
           'Content-Type' : 'application/json'
@@ -170,20 +170,7 @@ export default function LeaveApprovalDashboard() {
     }
   };
  
-  // const filterByStatus = (status) => {
-  //   console.log("data: " , Data)
-  //    if (!Array.isArray(Data)) {
-  //   console.error("Error: Data is not an array!", Data);
-  //   return;
-  // }
-  //   if (status === 'ALL') {
-  //     setFilteredData(Data);
-  //   } else {
-  //     const filtered = Data.filter(leave => leave.leaveStatus === status);
-  //     setFilteredData(filtered);
-  //   }
-  //   setCurrentPage(1); // Reset to first page on filter change
-  // };
+ 
  
   const toggleEdit = (id) => {
     // Toggle the editing state for the specific leave request ID
@@ -217,60 +204,94 @@ const handleSubmit = (e) => {
  
 };
  
+ 
   const applyFilters = () => {
     console.log("Leave Requests Data:", Data);
+    if (!Array.isArray(Data)) return;
  
     let filtered = [...Data] // always start from original data
  
     console.log("Filtering with Start Date:", startDate);
     console.log("Filtering with End Date:", endDate);
  
+ 
+     // Reset filters when "Show All" is clicked
+     if (selectedStatus === 'ALL' && !startDate && !endDate) {
+      setFilteredRequests(Data); // Show all requests
+      // Reset the status counts to match the original dataset
+      const total = Data.length;
+      const pending = Data.filter(req => req.leaveStatus === 'PENDING').length;
+      const approved = Data.filter(req => req.leaveStatus === 'APPROVED').length;
+      const rejected = Data.filter(req => req.leaveStatus === 'REJECTED').length;
+     
+      setCount(total);
+      setStatusCount({ pending, approved, rejected });
+ 
+      console.log("Reset to original counts:", { pending, approved, rejected });
+      return;
+  }
+ 
     // Apply status filters
     if(selectedStatus !== 'ALL'){
-      filtered = filtered.filter(request => request.leaveStatus === selectedStatus)
-    }
+      filtered = filtered.filter(request => request.leaveStatus === selectedStatus);
+     
+    }  
+    //else {
+  //     // If "ALL" is selected, calculate the actual counts
+  //     setStatusCount({
+  //         pending: Data.filter(req => req.leaveStatus === 'PENDING').length,
+  //         approved: Data.filter(req => req.leaveStatus === 'APPROVED').length,
+  //         rejected: Data.filter(req => req.leaveStatus === 'REJECTED').length,
+  //     });
+     
+  // }
  
    
     console.log("Data Dates:", filteredData.leaveStartDate, filtered.leaveEndDate);
  
-  //   if (startDate) {
-  //     filtered = filtered.filter(request => new Date(request.leaveStartDate) >= startDate);
-  // }
  
-  // if (endDate) {
-  //     filtered = filtered.filter(request => new Date(request.leaveEndDate) <= endDate);
-  // }
- 
-  //   setFilteredRequests(filtered.length > 0 ? filtered : []); // Always ensure its an array
- 
-  // // If no start date or end date is selected, show all leave requests
-  // if (!startDate && !endDate) {
-  //   setFilteredRequests(Data); // Show all requests
-  //   return;
-  // }
    
     // If a start date is selected, filter the leave requests that are >= start date
     if (startDate) {
       filtered = filtered.filter(request => new Date(request.leaveStartDate) >= new Date(startDate));
-      setStartDate("");
+     
     }
    
     // If an end date is selected, filter the leave requests that are <= end date
     if (endDate) {
       filtered = filtered.filter(request => new Date(request.leaveEndDate) <= new Date(endDate));
-      setEndDate("")
+     
     }
  
+   
+     // Update the counts dynamically based on filtered data
+     const pending = filtered.filter(req => req.leaveStatus === 'PENDING').length;
+     const approved = filtered.filter(req => req.leaveStatus === 'APPROVED').length;
+     const rejected = filtered.filter(req => req.leaveStatus === 'REJECTED').length;
+ 
+     setStatusCount({ pending, approved, rejected });
+ 
     setFilteredRequests(filtered);
+    // Reset date filters
+    setStartDate("");
+    setEndDate("");
    
    
   }
  
-  // call applyFilters() whenever filter is changed
-  const filterByStatus = (status) => {
-    setSelectedStatus(status);
-    applyFilters();
+   // call applyFilters() whenever filter is changed
+ const filterByStatus = (status) => {
+  setSelectedStatus(status);
+ 
+}
+ 
+useEffect(() => {
+  if (Data.length > 0) {  // ✅ Only apply filters if Data is loaded
+  applyFilters();
   }
+});
+ 
+ 
  
   const filterByDateRange = (start, end) => {
     setStartDate(start);
@@ -302,27 +323,7 @@ const handleSubmit = (e) => {
     ));
   };
  
-  //  // Filter the leave requests based on the selected start and end dates
-  //  const filterByDateRange = () => {
-  //   let filtered = [...Data];
-  //   // If no start date or end date is selected, show all leave requests
-  // if (!startDate && !endDate) {
-  //   setFilteredRequests(Data); // Show all requests
-  //   return;
-  // }
-   
-  //   // If a start date is selected, filter the leave requests that are >= start date
-  //   if (startDate) {
-  //     filtered = filtered.filter(request => new Date(request.leaveStartDate) >= new Date(startDate));
-  //   }
-   
-  //   // If an end date is selected, filter the leave requests that are <= end date
-  //   if (endDate) {
-  //     filtered = filtered.filter(request => new Date(request.leaveEndDate) <= new Date(endDate));
-  //   }
  
-  //   setFilteredRequests(filtered);
-  // };
  
   const getStatusClass = (status) => {
     switch (status) {
@@ -519,59 +520,68 @@ const handleSubmit = (e) => {
       </div>
  
       {/* Leave Requests Table */}
-      {loading ? <Loader/>: filteredData.length===0 ? <img className='mt-40 ml-auto mr-auto h-80 self-center ' src={Empty} alt="No Data FOund"/> :
-      (<div className="overflow-x-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-8 bg-gray-100">
-          <div className="col-span-8 text-center text-md font-bold p-2 bg-gray-200">LEAVE REQUESTS</div>
- 
-          {/* Table Header */}
-          {headers.map((header) => (
-    <div key={header} className="p-2 border-b border-gray-300 text-center text-md font-bold">
-      {header}
-    </div>
-  ))}
-        </div>
- 
-        {/* Table Body */}
-{filteredData && currentItems.map((data) => (
-  <div
-    key={data.id}
-    className="grid grid-cols-1 sm:grid-cols-8 text-center p-2 border-b border-gray-200 items-center bg-gray-100"
-  >
-    {/* Render Row Data */}
-    {renderRowData(data)}
- 
-    {/* Render Status */}
-    <div
-      className={`p-2 text-lg flex items-center justify-center space-x-1 ${
-        getStatusClass(data.leaveStatus)
-      }`}
-    >
-      {getStatusIcon(data.leaveStatus)}
-      {data.leaveStatus}
-    </div>
- 
-    {/* Render Actions */}
-    <div className="p-2 flex justify-center space-x-2">
-      {renderActions(data)}
-    </div>
-    </div>
-))}
- 
- 
-     {/* Pagination controls */}
-     <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        paginate={paginate}
+      {loading ? (
+  <Loader />
+) : filteredData.length === 0 ? (
+  <img
+    className="mt-40 ml-auto mr-auto h-80 self-center"
+    src={Empty}
+    alt="No Data Found"
+  />
+) : (
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-gray-200">
+      <thead className="bg-gray-50">
        
-      />
- 
- 
-   </div>
-      )
-    }
-     
+        <tr>
+          {headers.map((header) => (
+            <th
+              key={header}
+              className="px-6 py-3 text-center text-md font-bold text-gray-500 uppercase tracking-wider"
+            >
+              {header}
+            </th>
+          ))}
+         
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {filteredData &&
+          currentItems.map((data) => (
+            <tr key={data.id} className="hover:bg-gray-50 text-center">
+              {renderRowData(data).map((cell, index) => (
+                <td
+                  key={index}
+                  className="px-6 py-4 whitespace-nowrap text-lg text-gray-900"
+                >
+                  {cell}
+                </td>
+              ))}
+              <td
+                className={`px-6 py-4 whitespace-nowrap text-lg font-semibold ${getStatusClass(
+                  data.leaveStatus
+                )}`}
+              >
+                <span className="flex items-center justify-center space-x-1">
+                  {getStatusIcon(data.leaveStatus)}
+                  {data.leaveStatus}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap flex justify-center space-x-2">
+                {renderActions(data)}
+              </td>
+            </tr>
+          ))}
+      </tbody>
+    </table>
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      paginate={paginate}
+    />
+  </div>
+)
+}
       {/* Rejection Reason Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-600 bg-opacity-75">
@@ -579,7 +589,7 @@ const handleSubmit = (e) => {
             <h2 className="text-xl font-bold mb-4">Reject Leave Request</h2>
             <textarea
               name='leaveReason'
-              className="w-full p-2 border border-gray-300 rounded bg-gray-100 dark:bg-gray-700 text-white"
+              className="w-full p-2 border border-gray-300 rounded bg-gray-100 dark:bg-gray-700 dark:text-white text-black"
               rows="4"
               placeholder="Enter rejection reason..."
               value={rejectionReason.leaveReason}

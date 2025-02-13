@@ -167,20 +167,16 @@ function LeaveRequestForm(props) {
        
        
                 // Ensure the response is a valid number
-                console.log(response);
                 const remainingDays = response.data;
                 console.log("remain:", remainingDays)
                 if (typeof remainingDays === 'number' && !isNaN(remainingDays)) {
                     const currentDuration = calculateDuration(leaveStartDate, leaveEndDate);
                     if (remainingDays >= currentDuration) {
                         // const remain = remainingDays - formData.duration;
-                        setRemainingLeaveDays(remainingDays -  currentDuration);
-                        showLop(false); // Set the remaining leave days in state
+                        setRemainingLeaveDays(remainingDays -  currentDuration); // Set the remaining leave days in state
                     } else {
-                        setShowLop(true)
                         setRemainingLeaveDays('You don\'t have enough remaining leave days.');
                         setErrors(true);
-                        
                     }
                 } else {
                     setRemainingLeaveDays('Invalid data received from the server.');
@@ -212,7 +208,7 @@ function LeaveRequestForm(props) {
             // Fetch remaining leave days initially
             fetchRemainingLeaveDays(employeeId, leaveType, leaveStartDate, leaveEndDate);
         }
-    }, [location.state, nationalHolidays, showLop]);
+    }, [location.state, nationalHolidays]);
    
  
    
@@ -667,7 +663,7 @@ requiredFields.forEach(field => {
  
                 {leaveError && <span className="text-red-600 text-sm">{leaveError}</span>}
                 </div>
-                {remainingLeaveDays==="You don\'t have enough remaining leave days." && <div>
+                {showLop && <div>
                     <input type="checkbox" onChange={handleChange} name="LOP"/>
                 <label>LOP</label>
                     </div>}

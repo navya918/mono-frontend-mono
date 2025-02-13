@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate} from 'react-router-dom';
-import { FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaTrash, FaEdit, FaTimes } from 'react-icons/fa';
+
+import { FaCheckCircle, FaTimesCircle, FaHourglassHalf,  FaTimes } from 'react-icons/fa';
 import axios from 'axios';  // Use 'import' syntax for axios
 import Pagination, { getPaginationData } from './Pagination';
 import LeaveRequestForm from './LeaveForm.jsx'
@@ -9,7 +9,7 @@ import Empty from '../Assets/Empty.svg';
  
 export default function LeaveEmployee() {
   const [leaveRequests, setLeaveRequests] = useState([])
-  const navigate = useNavigate();
+  
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
   const [deleteRequestId, setDeleteRequestId] = useState(null); // Store request ID to be deleted
@@ -37,7 +37,7 @@ export default function LeaveEmployee() {
       try {
         const token = localStorage.getItem('token')
         console.log(token)
-        const response = await axios.get(`http://localhost:8085/apis/employees/employee/${employeeId}`, {
+        const response = await axios.get(`http://localhost:8085/api/leaves/employee/${employeeId}`, {
           headers:{
             'Authorization' : `Bearer ${token}`,
           }
@@ -112,15 +112,15 @@ export default function LeaveEmployee() {
     }
   }
  
-  const handleEditRequest = (request) => {
-  //  console.log("Request: " + request.medicalDocument)
-    navigate("/LeaveForm", {
-      state: {
-        edit: true,
-        ...request // passing all details for editing
-      },
-    });
-  };
+  // const handleEditRequest = (request) => {
+  // //  console.log("Request: " + request.medicalDocument)
+  //   navigate("/LeaveForm", {
+  //     state: {
+  //       edit: true,
+  //       ...request // passing all details for editing
+  //     },
+  //   });
+  // };
  
   // const handleDelete = async (id) => {
   //   try {
@@ -156,7 +156,7 @@ export default function LeaveEmployee() {
     const employeeId= localStorage.getItem('employeeId');
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:8085/apis/employees/employee/${employeeId}`, {
+      const response = await axios.get(`http://localhost:8085/api/leaves/employee/${employeeId}`, {
         method:'GET',
         headers:{
           'Authorization' : `Bearer ${token}`,
@@ -183,32 +183,10 @@ export default function LeaveEmployee() {
   }
  
   const handleCloseModal = async() => {
+    fetchLeaveRequests();
     setIsModalOpen(false);
-    const employeeId= localStorage.getItem('employeeId');
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(`http://localhost:8085/apis/employees/employee/${employeeId}`, {
-        headers:{
-          'Authorization' : `Bearer ${token}`,
-          'Content-Type' : 'application/json'
-        },
-        withCredentials:true
-      });
-      console.log('Employee', employeeId);
-      console.log("API Response Data:", response.data); // Log the response
-      // Sort leave requests to put the most recent requests on top
-      const leaves = response.data
-      setLeaveRequests(leaves.sort((a, b) => (b.createdAt || b.id) - (a.createdAt || a.id)));
-      setFilteredRequests(leaves);  // Initially set all requests to filtered requests
-     
-    }
-    catch (error) {
-   
-      console.log("Error fetching in leave requests", error)
-    }
-    finally{
-      setLoading(false);
-  }
+    
+    
 }
  
   const handleConfirmDelete = async () => {
@@ -217,7 +195,7 @@ export default function LeaveEmployee() {
     try {
       // Proceed with deletion
       const token = localStorage.getItem('token')
-      await axios.delete(`http://localhost:8085/apis/employees/delete/${deleteRequestId}`, {
+      await axios.delete(`http://localhost:8085/api/leaves/delete/${deleteRequestId}`, {
         method:'GET',
         headers:{
           'Authorization' : `Bearer ${token}`,
@@ -226,7 +204,7 @@ export default function LeaveEmployee() {
       });
       try {
         const token = localStorage.getItem('token')
-        const response = await axios.get(`http://localhost:8085/apis/employees/employee/${employeeId}`, {
+        const response = await axios.get(`http://localhost:8085/api/leaves/employee/${employeeId}`, {
           method:'GET',
           headers:{
             'Authorization' : `Bearer ${token}`,
@@ -392,7 +370,7 @@ const handleSubmit = (e) => {
             <thead>
               <tr className="bg-gray-100">
                 {headers.map((header) => (
-                  <th key={header} className="px-5 py-3 border-b-2 border-gray-200  text-left font-semibold text-gray-700 uppercase tracking-wider">{header}</th>
+                  <th key={header} className="px-5 py-3 border-b-2 border-gray-200  text-left font-bold text-gray-500 uppercase tracking-wider">{header}</th>
                 ))}
               </tr>
             </thead>
@@ -420,17 +398,13 @@ const handleSubmit = (e) => {
                       <div className="flex space-x-2">
                         <div onClick={handleOpenModal}>
                        
-                          <button
-                            onClick={() => handleEditRequest(request)}
-                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            <FaEdit className="mr-1 h-5 w-5" />
-                          </button>
+                          
                         </div>
                        
                         <button
                          onClick={() => handleOpenModal('delete', request.id)}
                           className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                          <FaTrash className="mr-1 h-5 w-5" />
+                          Delete
                         </button>
                       </div>
                     )}

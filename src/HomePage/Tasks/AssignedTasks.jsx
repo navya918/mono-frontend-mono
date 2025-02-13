@@ -9,7 +9,8 @@ import { FaSearch } from 'react-icons/fa';
 import { PlusIcon } from "@heroicons/react/16/solid";
 import { Link } from 'react-router-dom';
 import Loader from '../../Assets/Loader';
-import Empty from '../../Assets/Empty.svg'
+import Empty from '../../Assets/Empty.svg';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 
 const AssignedTasks = (props) => {
   const [data, setData] = useState([]);
@@ -377,21 +378,21 @@ const AssignedTasks = (props) => {
         </table>
 
         {/* Pagination controls */}
-        <div className="flex justify-center mt-5">
+        <div className="flex justify-end mt-5 mr-5">
           <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
+            className="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
           >
-            Prev
+            <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
           </button>
           <span className="px-4 py-2">{currentPage}</span>
           <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage * itemsPerPage >= data.length}
+            className="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
           >
-            Next
+            <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
       </div></div>

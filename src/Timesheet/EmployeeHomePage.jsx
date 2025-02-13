@@ -198,7 +198,7 @@ const EmployeeHomePage = ({ submissions, setSubmissions }) => {
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
             <div className="flex justify-between mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">Employee Dashboard</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Submitted Timesheets</h1>
             </div>
 
             {/* Modal for Delete Confirmation */}

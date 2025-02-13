@@ -218,7 +218,7 @@ const ManagerTimesheets = () => {
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6 sm:p-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-4xl font-bold text-gray-900">Submitted Timesheets</h2>
+              <h2 className="text-4xl font-bold text-gray-900">Recieved Timesheets</h2>
               <button
                 onClick={() => setShowCalendar(!showCalendar)}
                 className="bg-blue-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out"

@@ -42,8 +42,7 @@ export default function Navbar() {
         { name: 'Contacts', href: '/contacts' },
         { name: 'Organization Chart', href: '/OrgChart' },
         { name: 'Timesheet', href: '/TimesheetManage' },
-        { name: 'Leave Management', href: '/LeaveManagement' },
-        { name: 'Badges', href: '/badges' }
+        { name: 'Leave Management', href: '/LeaveManagement' }
     ];
 
     const employeeNavItems = [
@@ -52,8 +51,7 @@ export default function Navbar() {
         { name: 'Contacts', href: '/contacts' },
         { name: 'Organization Chart', href: '/OrgChart' },
         { name: 'Timesheet', href: '/TimesheetManage' },
-        { name: 'Leave Management', href: '/LeaveManagement' },
-        { name: 'Badges', href: '/badges' }
+        { name: 'Leave Management', href: '/LeaveManagement' }
     ];
 
     // Show admin nav items if role is 'admin', else show employee nav items

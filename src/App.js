@@ -30,6 +30,7 @@ import RecievedBadges from './HomePage/Badges/RecievedBadges';
 import Tasks from './HomePage/Tasks/Tasks.jsx'
 import LeaveMain from './Leave/LeaveMain.jsx'
 import TimesheetMain from './Timesheet/TimesheetMain.jsx';
+import LeaveSheet from './Leave/LeaveSheet.jsx';
 
 function App() {
   const [submissions, setSubmissions] = useState([]);
@@ -84,6 +85,7 @@ function Main({ submissions, setSubmissions }) {
         <Route path='/Badges' element={<Badges/>}/>
         <Route path='/OtherEmployeesList' element={<OtherEmployeesList/>}/>
         <Route path='/LeaveManagement' element={<LeaveMain/>}/>
+        <Route path='/LeaveSheet' element={<LeaveSheet/>}/>
       </Routes>
     </>
   );
