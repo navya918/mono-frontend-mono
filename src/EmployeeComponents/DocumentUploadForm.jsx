@@ -62,7 +62,7 @@ const DocumentUploadForm = ({ formData, onNext, onBack, onCancel, onFormDataChan
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8085/api/v1/employeeManager/add', formDataToSend, {
+            const response = await axios.post('http://4.227.217.66/api/v1/employeeManager/add', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
 

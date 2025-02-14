@@ -7,11 +7,6 @@ const TaskItem=(props)=>{
 
 
 
-
-
-
-
-
     var today = new Date(); // This gets today's date
 
 if(dueDate!==null){

@@ -45,7 +45,7 @@ export default function EmployeeDetails() {
                 const token= localStorage.getItem('token');
                 console.log(token);
                 console.log("upto");
-                const response = await axios.get(`http://localhost:8085/api/v1/employeeManager/employees/${id}`,{
+                const response = await axios.get(`http://4.227.217.66/api/v1/employeeManager/employees/${id}`,{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`,

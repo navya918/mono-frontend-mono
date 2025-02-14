@@ -22,7 +22,7 @@ const EmployeesList = props => {
       setLoading(true);
 
       try {
-        const response = await fetch('http://localhost:8085/api/v1/employeeManager/employees', {
+        const response = await fetch('http://4.227.217.66/api/v1/employeeManager/employees', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

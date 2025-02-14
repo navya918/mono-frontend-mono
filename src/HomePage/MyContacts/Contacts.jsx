@@ -20,7 +20,7 @@ const Contacts=()=>{
 
             const employeeId=localStorage.getItem("employeeId");
           try {
-            const response = await axios.get(`http://localhost:8085/apis/employees/contacts/contactsBy/${employeeId}`,{
+            const response = await axios.get(`http://4.227.217.66/apis/employees/contacts/contactsBy/${employeeId}`,{
               headers: {
                 "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
               }

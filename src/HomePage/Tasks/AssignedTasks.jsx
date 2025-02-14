@@ -35,16 +35,16 @@ const AssignedTasks = (props) => {
       let url;
 
       if (taskType === "allTasks") {
-        url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
+        url = `http://4.227.217.66/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url = `http://4.227.217.66/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
       }
       else if(taskType==="pendingTasks"){
-        url=`http://localhost:8085/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(taskType==="completedTasks"){
-        url=`http://localhost:8085/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
 
@@ -87,7 +87,7 @@ const AssignedTasks = (props) => {
   const confirmDelete = async () => {
     setLoading(true);
     const id = deleteId;
-    await axios.delete(`http://localhost:8085/apis/employees/tasks/${id}`,{
+    await axios.delete(`http://4.227.217.66/apis/employees/tasks/${id}`,{
       headers: {
         "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
       }
@@ -99,9 +99,9 @@ const AssignedTasks = (props) => {
       let url;
 
       if (taskType === "allTasks") {
-        url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
+        url = `http://4.227.217.66/apis/employees/tasksAssignedBy/${employeeId}`;
       } else if (taskType === "overdueTasks") {
-        url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url = `http://4.227.217.66/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
       }
 
       try {
@@ -125,7 +125,7 @@ const AssignedTasks = (props) => {
     setLoading(true);
     if (!isOpen) {
       try {
-        const response = await axios.get(`http://localhost:8085/apis/employees/tasks/${taskId}`,{
+        const response = await axios.get(`http://4.227.217.66/apis/employees/tasks/${taskId}`,{
           headers: {
             "Authorization": `Bearer ${token}`  // Add the token to the Authorization header
           }
@@ -143,9 +143,9 @@ const AssignedTasks = (props) => {
         let url;
 
         if (taskType === "allTasks") {
-          url = `http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
+          url = `http://4.227.217.66/apis/employees/tasksAssignedBy/${employeeId}`;
         } else if (taskType === "overdueTasks") {
-          url = `http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+          url = `http://4.227.217.66/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         }
 
         try {
@@ -188,19 +188,19 @@ const AssignedTasks = (props) => {
 
         let url;
       if(event.target.value==="allTasks"){
-        url=`http://localhost:8085/apis/employees/tasksAssignedBy/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/tasksAssignedBy/${employeeId}`;
         console.log(1);
       }
       else if(event.target.value==="overdueTasks"){
-        url=`http://localhost:8085/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/OverdueTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="pendingTasks"){
-        url=`http://localhost:8085/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/PendingTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       else if(event.target.value==="completedTasks"){
-        url=`http://localhost:8085/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
+        url=`http://4.227.217.66/apis/employees/CompletedTasks/AssignedFrom/${employeeId}`;
         console.log(2);
       }
       console.log(taskType);

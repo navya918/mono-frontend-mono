@@ -32,7 +32,7 @@ export default function AddTask(props) {
     if (taskName !== "" && taskDetails !== "") {
       setIsLoading(true);
       try {
-        axios.post("http://localhost:8085/apis/employees/tasks", {
+        axios.post("https://teamwebapp123.azurewebsites.net/apis/employees/tasks", {
           taskAssignedById: localStorage.getItem("employeeId"),
           taskAssignedByName: localStorage.getItem('firstName') + " " + localStorage.getItem('lastName'),
           taskAssignedByEmail: localStorage.getItem('email'),

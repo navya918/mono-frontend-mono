@@ -11,7 +11,7 @@ const ProfessionalDetailsForm = ({ formData, onNext, onBack, onFormDataChange })
         const fetchEmployees = async () => {
             const token = localStorage.getItem('token');
             try {
-                const response = await fetch('http://localhost:8085/api/v1/employeeManager/employees', {
+                const response = await fetch('http://4.227.217.66/api/v1/employeeManager/employees', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -68,7 +68,7 @@ const ProfessionalDetailsForm = ({ formData, onNext, onBack, onFormDataChange })
         if (Object.keys(validationErrors).length === 0) {
             try {
                 // Send the request to check if Employee ID exists
-                const response = await fetch(`http://localhost:8085/api/v1/employeeManager/exists/${formData.employeeId}`, {
+                const response = await fetch(`http://4.227.217.66/api/v1/employeeManager/exists/${formData.employeeId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
